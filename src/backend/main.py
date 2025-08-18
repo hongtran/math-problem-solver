@@ -12,6 +12,10 @@ from firebase_admin import credentials, auth, firestore
 from pydantic import BaseModel
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -31,11 +35,37 @@ app.add_middleware(
 
 # Initialize Firebase Admin SDK
 try:
-    cred = credentials.Certificate("serviceAccountKey.json")
-    firebase_admin.initialize_app(cred)
-    db = firestore.client()
+    # Get Firebase credentials from environment variables
+    firebase_config = {
+        "type": os.getenv("FIREBASE_TYPE", "service_account"),
+        "project_id": os.getenv("FIREBASE_PROJECT_ID"),
+        "private_key_id": os.getenv("FIREBASE_PRIVATE_KEY_ID"),
+        "private_key": os.getenv("FIREBASE_PRIVATE_KEY", "").replace('\\n', '\n'),
+        "client_email": os.getenv("FIREBASE_CLIENT_EMAIL"),
+        "client_id": os.getenv("FIREBASE_CLIENT_ID"),
+        "auth_uri": os.getenv("FIREBASE_AUTH_URI", "https://accounts.google.com/o/oauth2/auth"),
+        "token_uri": os.getenv("FIREBASE_TOKEN_URI", "https://oauth2.googleapis.com/token"),
+        "auth_provider_x509_cert_url": os.getenv("FIREBASE_AUTH_PROVIDER_X509_CERT_URL", "https://www.googleapis.com/oauth2/v1/certs"),
+        "client_x509_cert_url": os.getenv("FIREBASE_CLIENT_X509_CERT_URL")
+    }
+    
+    # Check if required Firebase environment variables are set
+    required_vars = ["FIREBASE_PROJECT_ID", "FIREBASE_PRIVATE_KEY", "FIREBASE_CLIENT_EMAIL"]
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    
+    if missing_vars:
+        print(f"Missing required Firebase environment variables: {missing_vars}")
+        print("Firebase will be disabled. Set these variables to enable Firebase functionality.")
+        db = None
+    else:
+        cred = credentials.Certificate(firebase_config)
+        firebase_admin.initialize_app(cred)
+        db = firestore.client()
+        print("Firebase initialized successfully")
+        
 except Exception as e:
     print(f"Firebase initialization error: {e}")
+    db = None
     # Continue without Firebase for development
 
 # OpenAI configuration
@@ -108,7 +138,6 @@ async def solve_math_problem(request: MathProblemRequest):
         
         # Parse OpenAI response
         solution_text = response.choices[0].message.content
-        os.system(f"echo '{solution_text}' > solution.txt")
         # Extract solution components (simplified parsing)
         steps = solution_text.split('\n\n') if '\n\n' in solution_text else [solution_text]
         answer = steps[-1] if steps else solution_text
@@ -117,7 +146,7 @@ async def solve_math_problem(request: MathProblemRequest):
         processing_time = (datetime.now() - start_time).total_seconds()
         
         # Save to Firebase if available
-        if request.user_id and 'db' in globals():
+        if request.user_id and db is not None:
             try:
                 problem_data = {
                     "user_id": request.user_id,
@@ -172,7 +201,7 @@ async def get_user_problems(user_id: str):
     Retrieve math problems solved by a specific user
     """
     try:
-        if 'db' not in globals():
+        if db is None:
             return {"message": "Firebase not configured", "problems": []}
         
         problems = db.collection("math_problems").where("user_id", "==", user_id).order_by("timestamp", direction=firestore.Query.DESCENDING).limit(20).stream()

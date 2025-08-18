@@ -21,17 +21,17 @@ services:
       - math-solver-network
 
   # Simple HTTP server for Flutter web build
-  # frontend:
-  #   image: nginx:alpine
-  #   ports:
-  #     - "8080:80"
-  #   volumes:
-  #     - ./src/frontend/build/web:/usr/share/nginx/html
-  #     - ./nginx.conf:/etc/nginx/nginx.conf
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - math-solver-network
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src/frontend/build/web:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - backend
+    networks:
+      - math-solver-network
 
   # Firebase Emulator (Optional for development)
   # firebase-emulator:
