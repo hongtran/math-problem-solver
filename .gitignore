@@ -237,3 +237,5 @@ Desktop.ini
 
 # Linux specific
 *~
+# credentials
+src/backend/serviceAccountKey.json
