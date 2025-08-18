@@ -45,7 +45,7 @@ client = OpenAI(api_key=api_key)
 
 class MathProblemRequest(BaseModel):
     image_base64: str
-    user_id: Optional[str] = None
+    user_email: Optional[str] = None
     problem_description: Optional[str] = None
 
 class MathProblemResponse(BaseModel):
@@ -117,10 +117,10 @@ async def solve_math_problem(request: MathProblemRequest):
         processing_time = (datetime.now() - start_time).total_seconds()
         
         # Save to Firebase if available
-        if request.user_id and 'db' in globals():
+        if request.user_email and 'db' in globals():
             try:
                 problem_data = {
-                    "user_id": request.user_id,
+                    "user_email": request.user_email,
                     "timestamp": datetime.now(),
                     "problem_description": request.problem_description,
                     "solution": solution_text,
@@ -166,8 +166,8 @@ async def upload_image(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
 
-@app.get("/user-problems/{user_id}")
-async def get_user_problems(user_id: str):
+@app.get("/user-problems/{user_email}")
+async def get_user_problems(user_email: str):
     """
     Retrieve math problems solved by a specific user
     """
@@ -175,7 +175,7 @@ async def get_user_problems(user_id: str):
         if 'db' not in globals():
             return {"message": "Firebase not configured", "problems": []}
         
-        problems = db.collection("math_problems").where("user_id", "==", user_id).order_by("timestamp", direction=firestore.Query.DESCENDING).limit(20).stream()
+        problems = db.collection("math_problems").where("user_email", "==", user_email).order_by("timestamp", direction=firestore.Query.DESCENDING).limit(20).stream()
         
         problem_list = []
         for problem in problems:

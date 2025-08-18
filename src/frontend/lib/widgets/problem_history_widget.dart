@@ -339,8 +339,8 @@ class _ProblemDetailsSheet extends StatelessWidget {
                   _buildInfoRow('Timestamp', _formatTimestamp(problem.timestamp)),
                   if (problem.problemDescription != null)
                     _buildInfoRow('Description', problem.problemDescription!),
-                  if (problem.userId != null)
-                    _buildInfoRow('User ID', problem.userId!),
+                  if (problem.userEmail != null)
+                    _buildInfoRow('User Email', problem.userEmail!),
 
                   const SizedBox(height: 24),
 

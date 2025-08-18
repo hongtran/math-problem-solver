@@ -6,6 +6,7 @@ import 'package:math_problem_solver/providers/math_solver_provider.dart';
 import 'package:math_problem_solver/widgets/image_capture_widget.dart';
 import 'package:math_problem_solver/widgets/solution_display_widget.dart';
 import 'package:math_problem_solver/widgets/problem_history_widget.dart';
+import 'package:math_problem_solver/widgets/email_input_dialog.dart';
 import 'package:math_problem_solver/pages/solution_demo_page.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,24 +16,41 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  late TabController _tabController;
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 1; // Start with Solve tab as default
   final ImagePicker _picker = ImagePicker();
+  final TextEditingController _problemDescriptionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
     
     // Check API connection on startup
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MathSolverProvider>().checkApiConnection();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = context.read<MathSolverProvider>();
+      await provider.checkApiConnection();
+      await provider.loadUserEmail();
+      
+      // Load user history if email is already set
+      if (provider.hasUserEmail) {
+        await provider.loadUserProblems(provider.currentUserEmail!);
+        // Show welcome back message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Welcome back! Email: ${provider.currentUserEmail}'),
+              backgroundColor: Colors.blue,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
     });
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _problemDescriptionController.dispose();
     super.dispose();
   }
 
@@ -40,38 +58,170 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Math Problem Solver'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.camera_alt), text: 'Solve'),
-            Tab(icon: Icon(Icons.history), text: 'History'),
-            Tab(icon: Icon(Icons.info), text: 'About'),
-          ],
+        title: const Text(
+          'Math Problem Solver',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
+          // Show current user email if available
+          Consumer<MathSolverProvider>(
+            builder: (context, provider, child) {
+              if (provider.hasUserEmail) {
+                return Container(
+                  margin: const EdgeInsets.only(right: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.email,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        provider.currentUserEmail!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          // API connection status
           Consumer<MathSolverProvider>(
             builder: (context, provider, child) {
               return Container(
                 margin: const EdgeInsets.only(right: 16),
                 child: Icon(
                   provider.isApiConnected ? Icons.wifi : Icons.wifi_off,
-                  color: provider.isApiConnected ? Colors.green : Colors.red,
+                  color: provider.isApiConnected ? Colors.green : Colors.white,
                 ),
               );
             },
           ),
         ],
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildSolveTab(),
-          _buildHistoryTab(),
-          _buildAboutTab(),
-        ],
+      body: SafeArea(
+        bottom: false, // Don't add bottom padding since we have bottom navigation
+        child: _buildCurrentTab(),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onTabChanged,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.blue,
+          unselectedItemColor: Colors.grey,
+          elevation: 0,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history),
+              label: 'History',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.camera_alt),
+              label: 'Solve',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.info),
+              label: 'About',
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildCurrentTab() {
+    switch (_currentIndex) {
+      case 0:
+        return _buildHistoryTab();
+      case 1:
+        return _buildSolveTab();
+      case 2:
+        return _buildAboutTab();
+      default:
+        return _buildSolveTab();
+    }
+  }
+
+  /// Show email input dialog
+  void _showEmailDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => EmailInputDialog(
+        initialEmail: context.read<MathSolverProvider>().currentUserEmail,
+        onEmailSubmitted: (email) async {
+          await context.read<MathSolverProvider>().setUserEmail(email);
+          _problemDescriptionController.clear();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Email saved: $email'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Handle solve button press
+  void _handleSolvePress() {
+    final provider = context.read<MathSolverProvider>();
+    
+    if (!provider.hasUserEmail) {
+      _showEmailDialog();
+      return;
+    }
+    
+    // Continue with solving the problem
+    provider.solveMathProblem(problemDescription: _problemDescriptionController.text.trim());
+  }
+
+  /// Handle tab selection and load history if needed
+  void _onTabChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    
+    // Load history when history tab is selected
+    if (index == 0) { // History tab
+      final provider = context.read<MathSolverProvider>();
+      if (provider.hasUserEmail && provider.userProblemHistory.isEmpty) {
+        // Load history only if we have an email and no history yet
+        provider.loadUserProblems(provider.currentUserEmail!);
+      }
+    }
   }
 
   Widget _buildSolveTab() {
@@ -105,6 +255,91 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         style: Theme.of(context).textTheme.bodyMedium,
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 16),
+                      // Email display section
+                      Consumer<MathSolverProvider>(
+                        builder: (context, provider, child) {
+                          if (provider.hasUserEmail) {
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.green.withOpacity(0.3)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Email: ${provider.currentUserEmail}',
+                                    style: TextStyle(
+                                      color: Colors.green[700],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    onPressed: () => _showEmailDialog(),
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color: Colors.green[700],
+                                      size: 18,
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 24,
+                                      minHeight: 24,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.warning,
+                                    color: Colors.orange,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Email required to save solutions',
+                                    style: TextStyle(
+                                      color: Colors.orange[700],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton(
+                                    onPressed: _showEmailDialog,
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      backgroundColor: Colors.orange,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    child: const Text('Add Email'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -115,10 +350,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ImageCaptureWidget(
                 onImageSelected: (Uint8List imageBytes, String fileName) {
                   provider.setSelectedImage(imageBytes, fileName);
+                  _problemDescriptionController.clear(); // Clear description when new image is selected
                 },
                 selectedImage: provider.selectedImage,
                 selectedImageName: provider.selectedImageName,
-                onClearImage: () => provider.clearSelectedImage(),
+                onClearImage: () {
+                  provider.clearSelectedImage();
+                  _problemDescriptionController.clear(); // Clear description when image is cleared
+                },
               ),
               const SizedBox(height: 24),
 
@@ -136,14 +375,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                         const SizedBox(height: 8),
                         TextField(
+                          controller: _problemDescriptionController,
                           decoration: const InputDecoration(
                             hintText: 'Add any additional context about the problem...',
                             border: OutlineInputBorder(),
                           ),
                           maxLines: 3,
-                          onChanged: (value) {
-                            // Store description for later use
-                          },
                         ),
                       ],
                     ),
@@ -152,24 +389,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 const SizedBox(height: 24),
 
                 // Solve button
-                ElevatedButton.icon(
-                  onPressed: provider.state == MathSolverState.loading
-                      ? null
-                      : () => provider.solveMathProblem(),
-                  icon: provider.state == MathSolverState.loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.science),
-                  label: Text(
-                    provider.state == MathSolverState.loading
-                        ? 'Solving...'
-                        : 'Solve Problem',
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                Tooltip(
+                  message: provider.hasUserEmail 
+                      ? 'Click to solve the math problem'
+                      : 'Please add your email first to save solutions',
+                  child: ElevatedButton.icon(
+                    onPressed: (provider.state == MathSolverState.loading || !provider.hasUserEmail)
+                        ? null
+                        : _handleSolvePress,
+                    icon: provider.state == MathSolverState.loading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.science),
+                    label: Text(
+                      provider.state == MathSolverState.loading
+                          ? 'Solving...'
+                          : (provider.hasUserEmail ? 'Solve Problem' : 'Add Email First'),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: provider.hasUserEmail ? null : Colors.grey,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -178,6 +421,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               // Solution display
               if (provider.currentSolution != null) ...[
                 SolutionDisplayWidget(solution: provider.currentSolution!),
+                const SizedBox(height: 24),
+                // Clear form after successful solution
+                ElevatedButton.icon(
+                  onPressed: () {
+                    provider.clearSolution();
+                    _problemDescriptionController.clear();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Solve Another Problem'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
                 const SizedBox(height: 24),
               ],
 
@@ -228,7 +486,203 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildHistoryTab() {
-    return const ProblemHistoryWidget();
+    return Consumer<MathSolverProvider>(
+      builder: (context, provider, child) {
+        // Don't load history here to avoid infinite loops
+        // History will be loaded when the tab is first selected
+
+        if (!provider.hasUserEmail) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.email_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Email Required',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please enter your email to view your problem history',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: _showEmailDialog,
+                  icon: const Icon(Icons.email),
+                  label: const Text('Enter Email'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          children: [
+            // Email header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              color: Colors.blue.withOpacity(0.1),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.email,
+                    color: Colors.blue[700],
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'History for: ${provider.currentUserEmail}',
+                    style: TextStyle(
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => _showEmailDialog(),
+                    icon: Icon(
+                      Icons.edit,
+                      color: Colors.blue[700],
+                      size: 18,
+                    ),
+                    tooltip: 'Change Email',
+                  ),
+                  IconButton(
+                    onPressed: provider.isLoadingHistory
+                        ? null
+                        : () {
+                            final provider = context.read<MathSolverProvider>();
+                            if (provider.hasUserEmail) {
+                              provider.loadUserProblems(provider.currentUserEmail!);
+                            }
+                          },
+                    icon: provider.isLoadingHistory
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            Icons.refresh,
+                            color: Colors.blue[700],
+                            size: 18,
+                          ),
+                    tooltip: 'Refresh History',
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Clear Email'),
+                          content: const Text('Are you sure you want to clear your email and all saved problems?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                await context.read<MathSolverProvider>().clearUserEmail();
+                                _problemDescriptionController.clear();
+                                Navigator.of(context).pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Email and history cleared'),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Clear'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      Icons.logout,
+                      color: Colors.blue[700],
+                      size: 18,
+                    ),
+                    tooltip: 'Clear Email & History',
+                  ),
+                ],
+              ),
+            ),
+            // Problem history
+            Expanded(
+              child: provider.isLoadingHistory
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text(
+                            'Loading your problem history...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : provider.userProblemHistory.isEmpty
+                      ? const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.history,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'No problems solved yet',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Solve your first math problem to see it here',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : const ProblemHistoryWidget(),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildAboutTab() {

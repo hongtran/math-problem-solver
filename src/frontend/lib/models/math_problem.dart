@@ -2,14 +2,14 @@ class MathProblem {
   final String id;
   final String imageBase64;
   final String? problemDescription;
-  final String? userId;
+  final String? userEmail; // Changed from userId to userEmail
   final DateTime timestamp;
 
   MathProblem({
     required this.id,
     required this.imageBase64,
     this.problemDescription,
-    this.userId,
+    this.userEmail, // Changed from userId to userEmail
     required this.timestamp,
   });
 
@@ -18,7 +18,7 @@ class MathProblem {
       id: json['id'] ?? '',
       imageBase64: json['image_base64'] ?? '',
       problemDescription: json['problem_description'],
-      userId: json['user_id'],
+      userEmail: json['user_email'], // Changed from user_id to user_email
       timestamp: DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
     );
   }
@@ -28,7 +28,7 @@ class MathProblem {
       'id': id,
       'image_base64': imageBase64,
       'problem_description': problemDescription,
-      'user_id': userId,
+      'user_email': userEmail, // Changed from user_id to user_email
       'timestamp': timestamp.toIso8601String(),
     };
   }
@@ -72,19 +72,19 @@ class MathSolution {
 
 class MathProblemRequest {
   final String imageBase64;
-  final String? userId;
+  final String? userEmail; // Changed from userId to userEmail
   final String? problemDescription;
 
   MathProblemRequest({
     required this.imageBase64,
-    this.userId,
+    this.userEmail, // Changed from userId to userEmail
     this.problemDescription,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'image_base64': imageBase64,
-      'user_id': userId,
+      'user_email': userEmail, // Changed from user_id to user_email
       'problem_description': problemDescription,
     };
   }

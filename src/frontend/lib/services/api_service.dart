@@ -154,10 +154,10 @@ class ApiService {
   }
 
   /// Get user's solved problems history
-  static Future<List<MathProblem>> getUserProblems(String userId) async {
+  static Future<List<MathProblem>> getUserProblems(String userEmail) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/user-problems/$userId'),
+        Uri.parse('$baseUrl/user-problems/$userEmail'),
         headers: _headers,
       );
 
