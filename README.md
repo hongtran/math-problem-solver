@@ -52,7 +52,7 @@ An AI-powered application that helps students solve mathematics homework problem
 - Flutter SDK 3.0+
 - Docker and Docker Compose
 - OpenAI API key
-- Firebase project (optional)
+- Firebase project and service account key (optional, for user management and history)
 
 ## 🚀 Quick Start
 
@@ -70,21 +70,41 @@ Create a `.env` file in the root directory:
 ```bash
 # OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key_here
-
-# Firebase Configuration (Optional)
-FIREBASE_TYPE=service_account
-FIREBASE_PROJECT_ID=your_firebase_project_id
-FIREBASE_PRIVATE_KEY_ID=your_private_key_id
-FIREBASE_PRIVATE_KEY=your_private_key
-FIREBASE_CLIENT_EMAIL=your_client_email
-FIREBASE_CLIENT_ID=your_client_id
-FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
-FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
-FIREBASE_AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
-FIREBASE_CLIENT_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs/your-service-account%40your-project.iam.gserviceaccount.com
 ```
 
-### 3. Run with Docker (Recommended)
+### 3. Set Up Firebase Service Account Key (Optional)
+
+If you want to use Firebase for user authentication and problem history storage, you need to set up a Firebase service account key:
+
+1. **Create a Firebase Project**:
+   - Go to the [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project or select an existing one
+
+2. **Generate Service Account Key**:
+   - In your Firebase project, go to **Project Settings** > **Service Accounts**
+   - Click **Generate new private key**
+   - Download the JSON file
+
+3. **Place the Service Account Key**:
+   - Rename the downloaded JSON file to `serviceAccountKey.json`
+   - Place it in the `src/backend/` directory:
+   ```
+   math-problem-solver/
+   ├── src/
+   │   └── backend/
+   │       ├── main.py
+   │       ├── serviceAccountKey.json  ← Place the file here
+   │       └── requirements.txt
+   ```
+
+4. **Enable Firestore**:
+   - In Firebase Console, go to **Firestore Database**
+   - Click **Create database**
+   - Choose production mode or test mode based on your needs
+
+**Note**: The application will work without Firebase, but user authentication and problem history features will be disabled.
+
+### 4. Run with Docker (Recommended)
 
 ```bash
 # Start all services
@@ -96,7 +116,7 @@ docker-compose up --build
 # API Docs: http://localhost:8000/docs
 ```
 
-### 4. Manual Setup (Alternative)
+### 5. Manual Setup (Alternative)
 
 #### Backend Setup
 
