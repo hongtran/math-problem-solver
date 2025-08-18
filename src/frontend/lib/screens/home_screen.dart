@@ -395,22 +395,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       : 'Please add your email first to save solutions',
                   child: ElevatedButton.icon(
                     onPressed: (provider.state == MathSolverState.loading || !provider.hasUserEmail)
-                        ? null
+                      ? null
                         : _handleSolvePress,
-                    icon: provider.state == MathSolverState.loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.science),
-                    label: Text(
-                      provider.state == MathSolverState.loading
-                          ? 'Solving...'
+                  icon: provider.state == MathSolverState.loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.science),
+                  label: Text(
+                    provider.state == MathSolverState.loading
+                        ? 'Solving...'
                           : (provider.hasUserEmail ? 'Solve Problem' : 'Add Email First'),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: provider.hasUserEmail ? null : Colors.grey,
                     ),
                   ),

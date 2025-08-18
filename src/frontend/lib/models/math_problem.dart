@@ -88,4 +88,48 @@ class MathProblemRequest {
       'problem_description': problemDescription,
     };
   }
-} 
+}
+
+class MathProblemHistory {
+  final String id;
+  final String imageBase64;
+  final String? problemDescription;
+  final String? userEmail; // Changed from userId to userEmail
+  final DateTime timestamp;
+  final List<String> steps;
+  final String answer;
+
+  MathProblemHistory({
+    required this.id,
+    required this.imageBase64,
+    this.problemDescription,
+    required this.userEmail, // Changed from userId to userEmail
+    required this.timestamp,
+    required this.steps,
+    required this.answer,
+  });
+  
+  factory MathProblemHistory.fromJson(Map<String, dynamic> json) {
+    return MathProblemHistory(
+      id: json['id'] ?? '',
+      imageBase64: json['image_base64'] ?? '',
+      problemDescription: json['problem_description'],
+      userEmail: json['user_email'], // Changed from user_id to user_email
+      timestamp: DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
+      steps: List<String>.from(json['steps'] ?? []),
+      answer: json['answer'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'image_base64': imageBase64,
+      'problem_description': problemDescription,
+      'user_email': userEmail, // Changed from user_id to user_email
+      'timestamp': timestamp.toIso8601String(),
+      'steps': steps,
+      'answer': answer,
+    };
+  }
+}

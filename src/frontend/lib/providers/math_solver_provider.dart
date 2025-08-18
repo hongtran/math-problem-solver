@@ -14,7 +14,7 @@ enum MathSolverState {
 class MathSolverProvider extends ChangeNotifier {
   MathSolverState _state = MathSolverState.idle;
   MathSolution? _currentSolution;
-  List<MathProblem> _problemHistory = [];
+  List<MathProblemHistory> _problemHistory = [];
   String? _errorMessage;
   Uint8List? _selectedImage;
   String? _selectedImageName;
@@ -25,7 +25,7 @@ class MathSolverProvider extends ChangeNotifier {
   // Getters
   MathSolverState get state => _state;
   MathSolution? get currentSolution => _currentSolution;
-  List<MathProblem> get problemHistory => _problemHistory;
+  List<MathProblemHistory> get problemHistory => _problemHistory;
   String? get errorMessage => _errorMessage;
   Uint8List? get selectedImage => _selectedImage;
   String? get selectedImageName => _selectedImageName;
@@ -71,7 +71,7 @@ class MathSolverProvider extends ChangeNotifier {
   bool get hasUserEmail => _currentUserEmail != null && _currentUserEmail!.isNotEmpty;
 
   /// Get filtered problem history for current user
-  List<MathProblem> get userProblemHistory {
+  List<MathProblemHistory> get userProblemHistory {
     if (_currentUserEmail == null) return [];
     return _problemHistory.where((problem) => problem.userEmail == _currentUserEmail).toList();
   }
@@ -156,7 +156,7 @@ class MathSolverProvider extends ChangeNotifier {
       _errorMessage = null;
 
       // Add to history
-      _addToHistory(request, solution);
+      // _addToHistory(request, solution);
 
       notifyListeners();
     } catch (e) {
@@ -165,22 +165,24 @@ class MathSolverProvider extends ChangeNotifier {
   }
 
   /// Add solved problem to history
-  void _addToHistory(MathProblemRequest request, MathSolution solution) {
-    final problem = MathProblem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      imageBase64: request.imageBase64,
-      problemDescription: request.problemDescription,
-      userEmail: request.userEmail,
-      timestamp: DateTime.now(),
-    );
+  // void _addToHistory(MathProblemRequest request, MathSolution solution) {
+  //   final problem = MathProblemHistory(
+  //     id: DateTime.now().millisecondsSinceEpoch.toString(),
+  //     imageBase64: request.imageBase64,
+  //     problemDescription: request.problemDescription,
+  //     userEmail: request.userEmail,
+  //     timestamp: DateTime.now(),
+  //     steps: solution.steps,
+  //     answer: solution.answer,
+  //   );
 
-    _problemHistory.insert(0, problem);
+  //   _problemHistory.insert(0, problem);
     
-    // Keep only last 50 problems
-    if (_problemHistory.length > 50) {
-      _problemHistory = _problemHistory.take(50).toList();
-    }
-  }
+  //   // Keep only last 50 problems
+  //   if (_problemHistory.length > 50) {
+  //     _problemHistory = _problemHistory.take(50).toList();
+  //   }
+  // }
 
   /// Load user problem history
   Future<void> loadUserProblems(String userEmail) async {

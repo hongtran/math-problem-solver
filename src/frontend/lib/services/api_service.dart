@@ -154,7 +154,7 @@ class ApiService {
   }
 
   /// Get user's solved problems history
-  static Future<List<MathProblem>> getUserProblems(String userEmail) async {
+  static Future<List<MathProblemHistory>> getUserProblems(String userEmail) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/user-problems/$userEmail'),
@@ -164,7 +164,7 @@ class ApiService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final List<dynamic> problemsList = data['problems'] ?? [];
-        return problemsList.map((json) => MathProblem.fromJson(json)).toList();
+        return problemsList.map((json) => MathProblemHistory.fromJson(json)).toList();
       } else {
         final errorData = jsonDecode(response.body);
         throw Exception(errorData['detail'] ?? 'Failed to fetch user problems');
