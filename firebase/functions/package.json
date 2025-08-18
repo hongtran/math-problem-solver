@@ -1,0 +1,6 @@
+{
+  "name": "math-problem-solver-firebase-functions",
+  "engines": {"node": "18"},
+  "main": "index.js",
+  "dependencies": {}
+}
