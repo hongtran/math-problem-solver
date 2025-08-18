@@ -25,19 +25,19 @@ That's a great question. I think they would offer a balanced view.
 
 3 Good Traits:
 
-Analytical Problem-Solver: They would likely say I’m deeply analytical. I enjoy breaking down complex problems into manageable parts and using data to find the most effective solution.
+- Analytical Problem-Solver: They would likely say I’m deeply analytical. I enjoy breaking down complex problems into manageable parts and using data to find the most effective solution.
 
-Collaborative: I believe they'd describe me as a strong collaborator. I prioritize clear communication to ensure everyone on the team is aligned and working towards the same goal.
+- I believe my former colleagues would describe me as someone with a very strong sense of ownership and responsibility. When I take on a task, I treat it as my own from start to finish. This means not only completing it on time but also ensuring the quality is high and it truly solves the intended problem. My team knew they could depend on me to deliver without needing constant follow-up.
 
-Driven: They would mention that I'm very driven and dedicated, especially when I'm working on a mission I'm passionate about, like improving education.
+- I think my manager would highlight that I'm a proactive team member who takes ownership beyond my assigned tasks. I make it a point to understand our team's larger goals, which allows me to anticipate challenges and step in to support my colleagues before they even ask for help. I believe that true ownership means being accountable for the team's success, not just my own piece of the puzzle.
 
 3 Bad Traits:
 
-Can Get Tunnel Vision: When I'm deep in a complex problem, I can become so focused that I sometimes lose sight of the bigger picture. I’ve learned to manage this by scheduling regular check-ins to re-align with the team's broader objectives.
+- Can Get Tunnel Vision: When I'm deep in a complex problem, I can become so focused that I sometimes lose sight of the bigger picture. I’ve learned to manage this by scheduling regular check-ins to re-align with the team's broader objectives.
 
-Overly Optimistic on Timelines: Because I get excited about projects, I have a tendency to be too optimistic about deadlines. I’ve become much more disciplined about this by breaking tasks down rigorously to create more realistic estimates.
+- They might say that my communication on complex topics could have been smoother in the past. It’s an area I’ve worked on intentionally by focusing on clarity and tailoring my message to the audience. I've made significant progress and see it as an area of continuous growth.
 
-Initially Quiet in Large Groups: In new team settings, I tend to listen and process information before offering my opinion. I am actively working on speaking up earlier in brainstorming sessions to contribute more freely from the start.
+- Initially Quiet in Large Groups: In new team settings, I tend to listen and process information before offering my opinion. I am actively working on speaking up earlier in brainstorming sessions to contribute more freely from the start.
 
 # If you could buy a billboard anywhere around the world, what would it say and where would it be?
 I would place the billboard directly facing the headquarters of a major educational institution like Harvard University or a global policymaking body like UNESCO.
