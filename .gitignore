@@ -100,64 +100,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Flutter Frontend
-**/ios/Flutter/App.framework
-**/ios/Flutter/Flutter.framework
-**/ios/Flutter/Flutter.podspec
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/ephemeral/
-**/ios/Flutter/app.flx
-**/ios/Flutter/app.zip
-**/ios/Flutter/flutter_assets/
-**/ios/ServiceDefinitions.json
-**/ios/Runner/GeneratedPluginRegistrant.*
-
-# Android
-**/android/**/gradle-wrapper.jar
-**/android/.gradle
-**/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
-**/android/local.properties
-**/android/**/GeneratedPluginRegistrant.java
-**/android/key.properties
-*.jks
-
-# iOS
-**/ios/**/*.mode1v3
-**/ios/**/*.mode2v3
-**/ios/**/*.moved-aside
-**/ios/**/*.pbxuser
-**/ios/**/*.perspectivev3
-**/ios/**/*sync/
-**/ios/**/.sconsign.dblite
-**/ios/**/.tags*
-**/ios/**/.vagrant/
-**/ios/**/DerivedData/
-**/ios/**/Icon?
-**/ios/**/Pods/
-**/ios/**/.symlinks/
-**/ios/**/profile
-**/ios/**/xcuserdata
-**/ios/.generated/
-**/ios/Flutter/App.framework
-**/ios/Flutter/Flutter.framework
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/ephemeral
-**/ios/Flutter/app.flx
-**/ios/Flutter/app.zip
-**/ios/Flutter/flutter_assets/
-**/ios/ServiceDefinitions.json
-**/ios/Runner/GeneratedPluginRegistrant.*
-
-# Web
-**/web/flutter_service_worker.js
-**/web/index.html
-**/web/main.dart.js
-**/web/main.dart.js.map
-
 # Flutter/Dart/Pub related
-**/doc/api/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -173,17 +116,6 @@ unlinked_spec.ds
 # Web related
 lib/generated_plugin_registrant.dart
 
-# Windows
-flutter/ephemeral/
-
-# macOS
-**/macos/Flutter/GeneratedPluginRegistrant.swift
-**/macos/Flutter/ephemeral
-
-# Linux
-**/linux/flutter/generated_plugin_registrant.cc
-**/linux/flutter/generated_plugin_registrant.h
-
 # Coverage
 coverage/
 
@@ -192,6 +124,62 @@ app.*.symbols
 
 # Obfuscation related
 app.*.map.json
+
+# Flutter iOS specific
+src/frontend/ios/Flutter/App.framework/
+src/frontend/ios/Flutter/Flutter.framework/
+src/frontend/ios/Flutter/Flutter.podspec
+src/frontend/ios/Flutter/Generated.xcconfig
+src/frontend/ios/Flutter/ephemeral/
+src/frontend/ios/Flutter/app.flx
+src/frontend/ios/Flutter/app.zip
+src/frontend/ios/Flutter/flutter_assets/
+src/frontend/ios/ServiceDefinitions.json
+src/frontend/ios/Runner/GeneratedPluginRegistrant.*
+src/frontend/ios/*.mode1v3
+src/frontend/ios/*.mode2v3
+src/frontend/ios/*.moved-aside
+src/frontend/ios/*.pbxuser
+src/frontend/ios/*.perspectivev3
+src/frontend/ios/*sync/
+src/frontend/ios/.sconsign.dblite
+src/frontend/ios/.tags*
+src/frontend/ios/.vagrant/
+src/frontend/ios/DerivedData/
+src/frontend/ios/Icon?
+src/frontend/ios/Pods/
+src/frontend/ios/.symlinks/
+src/frontend/ios/profile
+src/frontend/ios/xcuserdata/
+src/frontend/ios/.generated/
+
+# Flutter Android specific
+src/frontend/android/**/gradle-wrapper.jar
+src/frontend/android/.gradle/
+src/frontend/android/captures/
+src/frontend/android/gradlew
+src/frontend/android/gradlew.bat
+src/frontend/android/local.properties
+src/frontend/android/**/GeneratedPluginRegistrant.java
+src/frontend/android/key.properties
+src/frontend/android/**/*.jks
+
+# Flutter Web specific
+src/frontend/web/flutter_service_worker.js
+src/frontend/web/index.html
+src/frontend/web/main.dart.js
+src/frontend/web/main.dart.js.map
+
+# Flutter Windows specific
+src/frontend/windows/flutter/ephemeral/
+
+# Flutter macOS specific
+src/frontend/macos/Flutter/GeneratedPluginRegistrant.swift
+src/frontend/macos/Flutter/ephemeral/
+
+# Flutter Linux specific
+src/frontend/linux/flutter/generated_plugin_registrant.cc
+src/frontend/linux/flutter/generated_plugin_registrant.h
 
 # Docker
 docker-data/
