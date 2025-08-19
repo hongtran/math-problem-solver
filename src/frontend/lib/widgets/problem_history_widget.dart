@@ -810,24 +810,23 @@ class _ProblemDetailsSheet extends StatelessWidget {
 
   String _preprocessDisplayMath(String text) {
     // Handle multi-line display math blocks
-    final displayMathRegex =
-        RegExp(r'\\\[\s*\n\s*(.*?)\s*\n\s*\\\]', dotAll: true);
-
+    final displayMathRegex = RegExp(r'\\\[\s*\n\s*(.*?)\s*\n\s*\\\]', dotAll: true);
+    
     return text.replaceAllMapped(displayMathRegex, (match) {
       final mathContent = match.group(1)!.trim();
-      return '##DISPLAY_MATH##'; // Mark for display math block
+      return 'DISPLAY_MATH:$mathContent';
     });
   }
 
   Widget _buildTextLine(BuildContext context, String line) {
     // IMPORTANT: Process math expressions FIRST, then bold formatting
     // This prevents bold regex from capturing math expressions inside bold text
-
+    
     // Step 1: Find and temporarily replace math expressions with placeholders
     final mathPlaceholders = <String, String>{};
     var processedLine = line;
     int mathCounter = 0;
-
+    
     // Replace inline math with placeholders
     final inlineMathRegex = RegExp(r'\\\((.*?)\\\)');
     processedLine = processedLine.replaceAllMapped(inlineMathRegex, (match) {
@@ -835,47 +834,43 @@ class _ProblemDetailsSheet extends StatelessWidget {
       mathPlaceholders[placeholder] = match.group(1)!;
       return placeholder;
     });
-
+    
     // Step 2: Now process bold formatting on the line with math placeholders
     final spans = <InlineSpan>[];
     final boldRegex = RegExp(r'\*\*(.*?)\*\*');
     final boldMatches = boldRegex.allMatches(processedLine).toList();
-
+    
     int lastIndex = 0;
-
+    
     for (final boldMatch in boldMatches) {
       // Add text before bold match
       if (boldMatch.start > lastIndex) {
         final textBefore = processedLine.substring(lastIndex, boldMatch.start);
         if (textBefore.isNotEmpty) {
-          _addTextWithMathPlaceholders(
-              spans, textBefore, mathPlaceholders, context, false);
+          _addTextWithMathPlaceholders(spans, textBefore, mathPlaceholders, context, false);
         }
       }
-
+      
       // Add bold content (which may contain math placeholders)
       final boldContent = boldMatch.group(1)!;
-      _addTextWithMathPlaceholders(
-          spans, boldContent, mathPlaceholders, context, true);
-
+      _addTextWithMathPlaceholders(spans, boldContent, mathPlaceholders, context, true);
+      
       lastIndex = boldMatch.end;
     }
-
+    
     // Add remaining text
     if (lastIndex < processedLine.length) {
       final remainingText = processedLine.substring(lastIndex);
       if (remainingText.isNotEmpty) {
-        _addTextWithMathPlaceholders(
-            spans, remainingText, mathPlaceholders, context, false);
+        _addTextWithMathPlaceholders(spans, remainingText, mathPlaceholders, context, false);
       }
     }
-
+    
     // If no special formatting found, return simple text with math processing
     if (spans.isEmpty) {
-      _addTextWithMathPlaceholders(
-          spans, processedLine, mathPlaceholders, context, false);
+      _addTextWithMathPlaceholders(spans, processedLine, mathPlaceholders, context, false);
     }
-
+    
     return RichText(
       text: TextSpan(children: spans),
       softWrap: true,
@@ -987,19 +982,23 @@ class _ProblemDetailsSheet extends StatelessWidget {
   }
 
   Widget _buildDisplayMathLine(BuildContext context, String line) {
-    // Extract math content from \[ ... \]
-    final mathMatch = RegExp(r'\\\[(.*?)\\\]').firstMatch(line);
-    if (mathMatch != null) {
-      final mathContent = mathMatch.group(1)!.trim();
+    // Extract display math content
+    final displayMathRegex = RegExp(r'\\\[([\s\S]*?)\\\]');
+    final match = displayMathRegex.firstMatch(line);
+    
+    if (match != null) {
+      final mathContent = match.group(1)!.trim();
       return _buildDisplayMathWidget(context, mathContent);
     }
-
-    // If no math found, return the line as regular text
+    
+    // Fallback to regular text if no display math found
     return _buildTextLine(context, line);
   }
-
   TextStyle _getBaseTextStyle(BuildContext context) {
-    return Theme.of(context).textTheme.bodyMedium ??
-        const TextStyle(fontSize: 16);
+    return Theme.of(context).textTheme.bodyLarge?.copyWith(
+      fontSize: 16,
+      height: 1.5,
+      color: Theme.of(context).colorScheme.onSurface,
+    ) ?? const TextStyle(fontSize: 16, height: 1.5);
   }
 }
