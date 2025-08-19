@@ -19,18 +19,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 1; // Start with Solve tab as default
   final ImagePicker _picker = ImagePicker();
-  final TextEditingController _problemDescriptionController = TextEditingController();
+  final TextEditingController _problemDescriptionController =
+      TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    
+
     // Check API connection on startup
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = context.read<MathSolverProvider>();
       await provider.checkApiConnection();
       await provider.loadUserEmail();
-      
+
       // Load user history if email is already set
       if (provider.hasUserEmail) {
         await provider.loadUserProblems(provider.currentUserEmail!);
@@ -38,7 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Welcome back! Email: ${provider.currentUserEmail}'),
+              content:
+                  Text('Welcome back! Email: ${provider.currentUserEmail}'),
               backgroundColor: Colors.blue,
               duration: const Duration(seconds: 3),
             ),
@@ -58,105 +60,36 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Math Problem Solver',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          // Show current user email if available
-          Consumer<MathSolverProvider>(
-            builder: (context, provider, child) {
-              if (provider.hasUserEmail) {
-                return Container(
-                  margin: const EdgeInsets.only(right: 16),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.email,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        provider.currentUserEmail!,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          // API connection status
-          Consumer<MathSolverProvider>(
-            builder: (context, provider, child) {
-              return Container(
-                margin: const EdgeInsets.only(right: 16),
-                child: Icon(
-                  provider.isApiConnected ? Icons.wifi : Icons.wifi_off,
-                  color: provider.isApiConnected ? Colors.green : Colors.white,
-                ),
-              );
-            },
-          ),
-        ],
+        title: const Text('Math Problem Solver'),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
       ),
       body: SafeArea(
-        bottom: false, // Don't add bottom padding since we have bottom navigation
-        child: _buildCurrentTab(),
+        child: Column(
+          children: [
+            Expanded(
+              child: _buildCurrentTab(),
+            ),
+          ],
+        ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onTabChanged,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
-          elevation: 0,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history),
-              label: 'History',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.camera_alt),
-              label: 'Solve',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.info),
-              label: 'About',
-            ),
-          ],
-        ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: _onTabChanged,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.history),
+            label: 'History',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.camera_alt),
+            label: 'Solve',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.info),
+            label: 'About',
+          ),
+        ],
       ),
     );
   }
@@ -198,14 +131,15 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Handle solve button press
   void _handleSolvePress() {
     final provider = context.read<MathSolverProvider>();
-    
+
     if (!provider.hasUserEmail) {
       _showEmailDialog();
       return;
     }
-    
+
     // Continue with solving the problem
-    provider.solveMathProblem(problemDescription: _problemDescriptionController.text.trim());
+    provider.solveMathProblem(
+        problemDescription: _problemDescriptionController.text.trim());
   }
 
   /// Handle tab selection and load history if needed
@@ -213,9 +147,10 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _currentIndex = index;
     });
-    
+
     // Load history when history tab is selected
-    if (index == 0) { // History tab
+    if (index == 0) {
+      // History tab
       final provider = context.read<MathSolverProvider>();
       if (provider.hasUserEmail && provider.userProblemHistory.isEmpty) {
         // Load history only if we have an email and no history yet
@@ -261,14 +196,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         builder: (context, provider, child) {
                           if (provider.hasUserEmail) {
                             return Container(
+                              width: double.infinity,
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: Colors.green.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.green.withOpacity(0.3)),
+                                border: Border.all(
+                                    color: Colors.green.withOpacity(0.3)),
                               ),
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.check_circle,
@@ -276,11 +212,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    'Email: ${provider.currentUserEmail}',
-                                    style: TextStyle(
-                                      color: Colors.green[700],
-                                      fontWeight: FontWeight.w500,
+                                  Expanded(
+                                    child: Text(
+                                      'Email: ${provider.currentUserEmail}',
+                                      style: TextStyle(
+                                        color: Colors.green[700],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -302,37 +241,51 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                           } else {
                             return Container(
+                              width: double.infinity,
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: Colors.orange.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                                border: Border.all(
+                                    color: Colors.orange.withOpacity(0.3)),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    Icons.warning,
-                                    color: Colors.orange,
-                                    size: 20,
+                                  // Warning icon and text in a row
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.warning,
+                                        color: Colors.orange,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Email required to save solutions',
+                                          style: TextStyle(
+                                            color: Colors.orange[700],
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Email required to save solutions',
-                                    style: TextStyle(
-                                      color: Colors.orange[700],
-                                      fontWeight: FontWeight.w500,
+                                  const SizedBox(height: 12),
+                                  // Button in its own row to prevent overflow
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: _showEmailDialog,
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 12),
+                                        backgroundColor: Colors.orange,
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      child: const Text('Add Email'),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  ElevatedButton(
-                                    onPressed: _showEmailDialog,
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      backgroundColor: Colors.orange,
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    child: const Text('Add Email'),
                                   ),
                                 ],
                               ),
@@ -350,13 +303,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ImageCaptureWidget(
                 onImageSelected: (Uint8List imageBytes, String fileName) {
                   provider.setSelectedImage(imageBytes, fileName);
-                  _problemDescriptionController.clear(); // Clear description when new image is selected
+                  _problemDescriptionController
+                      .clear(); // Clear description when new image is selected
                 },
                 selectedImage: provider.selectedImage,
                 selectedImageName: provider.selectedImageName,
                 onClearImage: () {
                   provider.clearSelectedImage();
-                  _problemDescriptionController.clear(); // Clear description when image is cleared
+                  _problemDescriptionController
+                      .clear(); // Clear description when image is cleared
                 },
               ),
               const SizedBox(height: 24),
@@ -377,7 +332,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextField(
                           controller: _problemDescriptionController,
                           decoration: const InputDecoration(
-                            hintText: 'Add any additional context about the problem...',
+                            hintText:
+                                'Add any additional context about the problem...',
                             border: OutlineInputBorder(),
                           ),
                           maxLines: 3,
@@ -390,28 +346,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Solve button
                 Tooltip(
-                  message: provider.hasUserEmail 
+                  message: provider.hasUserEmail
                       ? 'Click to solve the math problem'
                       : 'Please add your email first to save solutions',
                   child: ElevatedButton.icon(
-                    onPressed: (provider.state == MathSolverState.loading || !provider.hasUserEmail)
-                      ? null
+                    onPressed: (provider.state == MathSolverState.loading ||
+                            !provider.hasUserEmail)
+                        ? null
                         : _handleSolvePress,
-                  icon: provider.state == MathSolverState.loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.science),
-                  label: Text(
-                    provider.state == MathSolverState.loading
-                        ? 'Solving...'
-                          : (provider.hasUserEmail ? 'Solve Problem' : 'Add Email First'),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: provider.hasUserEmail ? null : Colors.grey,
+                    icon: provider.state == MathSolverState.loading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.science),
+                    label: Text(
+                      provider.state == MathSolverState.loading
+                          ? 'Solving...'
+                          : (provider.hasUserEmail
+                              ? 'Solve Problem'
+                              : 'Add Email'),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor:
+                          provider.hasUserEmail ? null : Colors.grey,
                     ),
                   ),
                 ),
@@ -457,9 +417,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(width: 8),
                             Text(
                               'Error',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
                             ),
                           ],
                         ),
@@ -505,15 +468,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'Email Required',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Please enter your email to view your problem history',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -524,7 +487,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                   ),
                 ),
               ],
@@ -570,7 +534,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         : () {
                             final provider = context.read<MathSolverProvider>();
                             if (provider.hasUserEmail) {
-                              provider.loadUserProblems(provider.currentUserEmail!);
+                              provider
+                                  .loadUserProblems(provider.currentUserEmail!);
                             }
                           },
                     icon: provider.isLoadingHistory
@@ -592,7 +557,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         context: context,
                         builder: (context) => AlertDialog(
                           title: const Text('Clear Email'),
-                          content: const Text('Are you sure you want to clear your email and all saved problems?'),
+                          content: const Text(
+                              'Are you sure you want to clear your email and all saved problems?'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),
@@ -600,7 +566,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             ElevatedButton(
                               onPressed: () async {
-                                await context.read<MathSolverProvider>().clearUserEmail();
+                                await context
+                                    .read<MathSolverProvider>()
+                                    .clearUserEmail();
                                 _problemDescriptionController.clear();
                                 Navigator.of(context).pop();
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -747,10 +715,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 16),
-                  _buildStepItem(context, '1', 'Take a photo or upload an image of your math problem'),
-                  _buildStepItem(context, '2', 'Optionally add a description for better context'),
-                  _buildStepItem(context, '3', 'Tap "Solve Problem" to get AI-powered solution'),
-                  _buildStepItem(context, '4', 'Review the step-by-step solution and final answer'),
+                  _buildStepItem(context, '1',
+                      'Take a photo or upload an image of your math problem'),
+                  _buildStepItem(context, '2',
+                      'Optionally add a description for better context'),
+                  _buildStepItem(context, '3',
+                      'Tap "Solve Problem" to get AI-powered solution'),
+                  _buildStepItem(context, '4',
+                      'Review the step-by-step solution and final answer'),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
@@ -790,7 +762,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFeatureItem(BuildContext context, IconData icon, String title, String description) {
+  Widget _buildFeatureItem(
+      BuildContext context, IconData icon, String title, String description) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -852,4 +825,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-} 
+}
