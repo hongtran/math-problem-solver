@@ -123,7 +123,7 @@ async def solve_math_problem(request: MathProblemRequest):
                     "user_email": request.user_email,
                     "timestamp": datetime.now(),
                     "problem_description": request.problem_description,
-                    "solution": solution_text,
+                    "image_base64": request.image_base64,
                     "steps": steps,
                     "processing_time": processing_time
                 }
