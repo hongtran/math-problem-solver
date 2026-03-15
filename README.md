@@ -85,17 +85,11 @@ If you want to use Firebase for user authentication and problem history storage,
    - Click **Generate new private key**
    - Download the JSON file
 
-3. **Place the Service Account Key**:
-   - Rename the downloaded JSON file to `serviceAccountKey.json`
-   - Place it in the `src/backend/` directory:
-   ```
-   math-problem-solver/
-   ├── src/
-   │   └── backend/
-   │       ├── main.py
-   │       ├── serviceAccountKey.json  ← Place the file here
-   │       └── requirements.txt
-   ```
+3. **Configure credentials (env-based — no key file in repo)**  
+   Use one of these options (copy `src/backend/env.example` to `.env` in backend or project root first):
+   - **Option 1:** Set individual env vars from the key JSON: `FIREBASE_PROJECT_ID`, `FIREBASE_PRIVATE_KEY_ID`, `FIREBASE_PRIVATE_KEY` (use `\n` for newlines in the key), `FIREBASE_CLIENT_EMAIL`, `FIREBASE_CLIENT_ID`.
+
+   **Optional local fallback:** You can still place a file named `serviceAccountKey.json` in `src/backend/` for local dev; it is ignored by git. Env vars take precedence.
 
 4. **Enable Firestore**:
    - In Firebase Console, go to **Firestore Database**

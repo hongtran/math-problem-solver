@@ -5,6 +5,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import os
 import base64
 import io
+
+from dotenv import load_dotenv
+
+load_dotenv()
 from PIL import Image
 from openai import OpenAI
 from typing import Optional, Annotated
@@ -30,14 +34,52 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Firebase Admin SDK
+# Initialize Firebase Admin SDK from environment (no key file in repo)
+def _get_firebase_credentials():
+    # . Individual env vars (build service account dict)
+    project_id = os.getenv("FIREBASE_PROJECT_ID")
+    private_key = os.getenv("FIREBASE_PRIVATE_KEY")
+    client_email = os.getenv("FIREBASE_CLIENT_EMAIL")
+    if project_id and private_key and client_email:
+        # Private key in env often has literal \n; turn into real newlines
+        if isinstance(private_key, str) and "\\n" in private_key:
+            private_key = private_key.replace("\\n", "\n")
+        cred_dict = {
+            "type": "service_account",
+            "project_id": project_id,
+            "private_key_id": os.getenv("FIREBASE_PRIVATE_KEY_ID", ""),
+            "private_key": private_key,
+            "client_email": client_email,
+            "client_id": os.getenv("FIREBASE_CLIENT_ID", ""),
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": "",
+        }
+        return credentials.Certificate(cred_dict)
+
+    # 2. Local fallback: key file (e.g. serviceAccountKey.json) — do not commit
+    key_file = "serviceAccountKey.json"
+    if os.path.isfile(key_file):
+        return credentials.Certificate(key_file)
+
+    return None
+
+
 try:
-    cred = credentials.Certificate("serviceAccountKey.json")
-    firebase_admin.initialize_app(cred)
-    db = firestore.client()
+    cred = _get_firebase_credentials()
+    if cred is not None:
+        firebase_admin.initialize_app(cred)
+        db = firestore.client()
+    else:
+        db = None
+        print(
+            "Firebase not initialized: set FIREBASE_SERVICE_ACCOUNT_JSON, "
+            "GOOGLE_APPLICATION_CREDENTIALS, or FIREBASE_* env vars (or add serviceAccountKey.json)"
+        )
 except Exception as e:
     print(f"Firebase initialization error: {e}")
-    # Continue without Firebase for development
+    db = None
 
 # OpenAI configuration
 api_key = os.getenv("OPENAI_API_KEY")
@@ -117,7 +159,7 @@ async def solve_math_problem(request: MathProblemRequest):
         processing_time = (datetime.now() - start_time).total_seconds()
         
         # Save to Firebase if available
-        if request.user_email and 'db' in globals():
+        if request.user_email and db:
             try:
                 problem_data = {
                     "user_email": request.user_email,
@@ -172,9 +214,9 @@ async def get_user_problems(user_email: str):
     Retrieve math problems solved by a specific user
     """
     try:
-        if 'db' not in globals():
+        if not db:
             return {"message": "Firebase not configured", "problems": []}
-        
+
         problems = db.collection("math_problems").where("user_email", "==", user_email).order_by("timestamp", direction=firestore.Query.DESCENDING).limit(20).stream()
         
         problem_list = []
