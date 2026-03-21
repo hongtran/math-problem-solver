@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:math_problem_solver/models/math_problem.dart';
 import 'package:flutter/foundation.dart';
@@ -62,9 +61,9 @@ class ApiService {
       ).timeout(const Duration(seconds: 5));
       return response.statusCode == 200;
     } catch (e) {
-      print('Connectivity test failed: $e');
-      print('Platform info: ${getPlatformInfo()}');
-      print('Using base URL: $baseUrl');
+      debugPrint('Connectivity test failed: $e');
+      debugPrint('Platform info: ${getPlatformInfo()}');
+      debugPrint('Using base URL: $baseUrl');
       return false;
     }
   }
@@ -78,29 +77,33 @@ class ApiService {
   /// Solve a math problem by sending image to the API
   static Future<MathSolution> solveMathProblem(MathProblemRequest request) async {
     try {
-      print('Attempting to solve math problem...');
-      print('Platform info: ${getPlatformInfo()}');
-      print('Using base URL: $baseUrl');
-      
+      debugPrint('Attempting to solve math problem...');
+      debugPrint('Platform info: ${getPlatformInfo()}');
+      debugPrint('Using base URL: $baseUrl');
+
       final response = await http.post(
         Uri.parse('$baseUrl/solve-math-problem'),
         headers: _headers,
         body: jsonEncode(request.toJson()),
       );
 
-      print('Response status code: ${response.statusCode}');
+      debugPrint('Response status code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
+        final Map<String, dynamic> data =
+            jsonDecode(response.body) as Map<String, dynamic>;
         return MathSolution.fromJson(data);
       } else {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['detail'] ?? 'Failed to solve math problem');
+        final dynamic errorData = jsonDecode(response.body);
+        final detail = errorData is Map<String, dynamic>
+            ? errorData['detail']
+            : null;
+        throw Exception(detail ?? 'Failed to solve math problem');
       }
     } catch (e) {
-      print('Error solving math problem: $e');
-      print('Platform info: ${getPlatformInfo()}');
-      print('Base URL: $baseUrl');
+      debugPrint('Error solving math problem: $e');
+      debugPrint('Platform info: ${getPlatformInfo()}');
+      debugPrint('Base URL: $baseUrl');
       
       if (e.toString().contains('SocketException')) {
         throw Exception('Network error: Cannot connect to server at $baseUrl. ${getPlatformInfo()}. Error: $e');
@@ -162,12 +165,19 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
+        final Map<String, dynamic> data =
+            jsonDecode(response.body) as Map<String, dynamic>;
         final List<dynamic> problemsList = data['problems'] ?? [];
-        return problemsList.map((json) => MathProblemHistory.fromJson(json)).toList();
+        return problemsList
+            .map((json) =>
+                MathProblemHistory.fromJson(json as Map<String, dynamic>))
+            .toList();
       } else {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['detail'] ?? 'Failed to fetch user problems');
+        final dynamic errorData = jsonDecode(response.body);
+        final detail = errorData is Map<String, dynamic>
+            ? errorData['detail']
+            : null;
+        throw Exception(detail ?? 'Failed to fetch user problems');
       }
     } catch (e) {
       throw Exception('Failed to fetch user problems: $e');

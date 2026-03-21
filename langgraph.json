@@ -1,0 +1,7 @@
+{
+  "dependencies": ["./src/backend"],
+  "graphs": {
+    "math_agent": "./src/backend/langgraph_app.py:graph"
+  },
+  "env": "./.env"
+}

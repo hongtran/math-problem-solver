@@ -1,235 +1,131 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Header
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import os
-import base64
-import io
-
-from dotenv import load_dotenv
-
-load_dotenv()
-from PIL import Image
-from openai import OpenAI
-from typing import Optional, Annotated
-import firebase_admin
-from firebase_admin import credentials, auth, firestore
-from pydantic import BaseModel
-import json
+import asyncio
+import logging
+from contextlib import asynccontextmanager
 from datetime import datetime
+from typing import Annotated
 
-# Initialize FastAPI app
+from config import get_settings
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from firebase_app import get_firestore_client
+from image_utils import normalize_image_bytes_to_png_base64
+from openai import OpenAI
+from schemas import MathProblemRequest, MathProblemResponse
+from solver import list_user_problems_sync, solve_math_problem_sync
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings = get_settings()
+    app.state.settings = settings
+    app.state.db = get_firestore_client()
+    if settings.openai_api_key:
+        app.state.openai_client = OpenAI(api_key=settings.openai_api_key)
+    else:
+        app.state.openai_client = None
+        logger.warning("OPENAI_API_KEY is not set; /solve-math-problem will return 503.")
+    yield
+
+
+_settings = get_settings()
 app = FastAPI(
     title="Math Problem Solver API",
     description="AI-powered math homework solver using OpenAI and Firebase",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this to your Flutter app domain
-    allow_credentials=True,
+    allow_origins=_settings.cors_origins,
+    allow_credentials=_settings.cors_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize Firebase Admin SDK from environment (no key file in repo)
-def _get_firebase_credentials():
-    # . Individual env vars (build service account dict)
-    project_id = os.getenv("FIREBASE_PROJECT_ID")
-    private_key = os.getenv("FIREBASE_PRIVATE_KEY")
-    client_email = os.getenv("FIREBASE_CLIENT_EMAIL")
-    if project_id and private_key and client_email:
-        # Private key in env often has literal \n; turn into real newlines
-        if isinstance(private_key, str) and "\\n" in private_key:
-            private_key = private_key.replace("\\n", "\n")
-        cred_dict = {
-            "type": "service_account",
-            "project_id": project_id,
-            "private_key_id": os.getenv("FIREBASE_PRIVATE_KEY_ID", ""),
-            "private_key": private_key,
-            "client_email": client_email,
-            "client_id": os.getenv("FIREBASE_CLIENT_ID", ""),
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": "",
-        }
-        return credentials.Certificate(cred_dict)
-
-    # 2. Local fallback: key file (e.g. serviceAccountKey.json) — do not commit
-    key_file = "serviceAccountKey.json"
-    if os.path.isfile(key_file):
-        return credentials.Certificate(key_file)
-
-    return None
-
-
-try:
-    cred = _get_firebase_credentials()
-    if cred is not None:
-        firebase_admin.initialize_app(cred)
-        db = firestore.client()
-    else:
-        db = None
-        print(
-            "Firebase not initialized: set FIREBASE_SERVICE_ACCOUNT_JSON, "
-            "GOOGLE_APPLICATION_CREDENTIALS, or FIREBASE_* env vars (or add serviceAccountKey.json)"
-        )
-except Exception as e:
-    print(f"Firebase initialization error: {e}")
-    db = None
-
-# OpenAI configuration
-api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key)
-
-class MathProblemRequest(BaseModel):
-    image_base64: str
-    user_email: Optional[str] = None
-    problem_description: Optional[str] = None
-
-class MathProblemResponse(BaseModel):
-    solution: str
-    steps: list[str]
-    answer: str
-    confidence: float
-    processing_time: float
 
 @app.get("/")
 async def root():
     return {"message": "Math Problem Solver API is running!"}
 
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
+
 @app.post("/solve-math-problem", response_model=MathProblemResponse)
-async def solve_math_problem(request: MathProblemRequest):
+async def solve_math_problem(request: MathProblemRequest, req: Request):
     """
-    Solve a math problem from an uploaded image using OpenAI's vision capabilities
+    Solve a math problem from an uploaded image and/or text. Provide at least one of
+    image_base64 or problem_text (or problem_description). When use_verification is True (default),
+    uses an agent that verifies the answer with verify_solution and re-evaluates if needed.
     """
+    client = req.app.state.openai_client
+    if client is None:
+        raise HTTPException(status_code=503, detail="OpenAI API is not configured.")
+
     try:
-        start_time = datetime.now()
-        
-        # Decode base64 image
-        image_data = base64.b64decode(request.image_base64)
-        image = Image.open(io.BytesIO(image_data))
-        
-        # Convert image to base64 for OpenAI API
-        buffered = io.BytesIO()
-        image.save(buffered, format="PNG")
-        img_base64 = base64.b64encode(buffered.getvalue()).decode()
-        # Prepare prompt for OpenAI
-        system_prompt = """You are an expert mathematics tutor."""
-        
-        # Call OpenAI API with vision
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Please solve this math problem."
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/png;base64,{img_base64}"
-                            }
-                        }
-                    ]
-                }
-            ],
-            max_tokens=1000,
-            temperature=0.3
+        return await asyncio.to_thread(
+            solve_math_problem_sync,
+            request,
+            client,
+            req.app.state.db,
         )
-        
-        # Parse OpenAI response
-        solution_text = response.choices[0].message.content
-        # Extract solution components (simplified parsing)
-        steps = solution_text.split('\n\n') if '\n\n' in solution_text else [solution_text]
-        answer = steps[-1] if steps else solution_text
-        
-        # Calculate processing time
-        processing_time = (datetime.now() - start_time).total_seconds()
-        
-        # Save to Firebase if available
-        if request.user_email and db:
-            try:
-                problem_data = {
-                    "user_email": request.user_email,
-                    "timestamp": datetime.now(),
-                    "problem_description": request.problem_description,
-                    "image_base64": request.image_base64,
-                    "steps": steps,
-                    "processing_time": processing_time
-                }
-                db.collection("math_problems").add(problem_data)
-            except Exception as e:
-                print(f"Firebase save error: {e}")
-        
-        return MathProblemResponse(
-            solution=solution_text,
-            steps=steps,
-            answer=answer,
-            confidence=0.85,  # Placeholder confidence score
-            processing_time=processing_time
-        )
-        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error solving math problem: {str(e)}")
+        logger.exception("solve-math-problem failed")
+        raise HTTPException(status_code=500, detail="Error solving math problem.") from e
+
 
 @app.post("/upload-image")
-async def upload_image(file: UploadFile = File(...)):
-    """
-    Alternative endpoint for direct file upload
-    """
+async def upload_image(request: Request, file: Annotated[UploadFile, File()]):
+    """Accept a direct image upload and return PNG base64 for use with /solve-math-problem."""
+    max_bytes = request.app.state.settings.max_upload_bytes
     try:
-        # Validate file type
-        if not file.content_type.startswith('image/'):
+        if not file.content_type or not file.content_type.startswith("image/"):
             raise HTTPException(status_code=400, detail="File must be an image")
-        
-        # Read and process image
-        image_data = await file.read()
-        image = Image.open(io.BytesIO(image_data))
-        
-        # Convert to base64
-        buffered = io.BytesIO()
-        image.save(buffered, format="PNG")
-        img_base64 = base64.b64encode(buffered.getvalue()).decode()
-        
+
+        chunk = await file.read(max_bytes + 1)
+        if len(chunk) > max_bytes:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File too large (max {max_bytes // (1024 * 1024)} MB).",
+            )
+
+        img_base64 = await asyncio.to_thread(normalize_image_bytes_to_png_base64, chunk)
         return {"image_base64": img_base64, "filename": file.filename}
-        
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+        logger.exception("upload-image failed")
+        raise HTTPException(status_code=500, detail="Error processing image.") from e
+
 
 @app.get("/user-problems/{user_email}")
-async def get_user_problems(user_email: str):
+async def get_user_problems(user_email: str, req: Request):
     """
-    Retrieve math problems solved by a specific user
+    Retrieve recent math problems for a user (Firestore).
+
+    Note: This endpoint is not authenticated in this template; protect it in production
+    (e.g. Firebase ID token + match email claim) before exposing user data.
     """
     try:
-        if not db:
+        if req.app.state.db is None:
             return {"message": "Firebase not configured", "problems": []}
 
-        problems = db.collection("math_problems").where("user_email", "==", user_email).order_by("timestamp", direction=firestore.Query.DESCENDING).limit(20).stream()
-        
-        problem_list = []
-        for problem in problems:
-            problem_data = problem.to_dict()
-            problem_data["id"] = problem.id
-            problem_list.append(problem_data)
-        
-        return {"problems": problem_list}
-        
+        problems = await asyncio.to_thread(list_user_problems_sync, req.app.state.db, user_email)
+        return {"problems": problems}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving problems: {str(e)}")
+        logger.exception("get_user_problems failed")
+        raise HTTPException(status_code=500, detail="Error retrieving problems.") from e
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)

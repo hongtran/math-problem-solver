@@ -8,7 +8,13 @@ import 'dart:convert';
 import 'package:flutter_math_fork/flutter_math.dart';
 
 class ProblemHistoryWidget extends StatelessWidget {
-  const ProblemHistoryWidget({super.key});
+  const ProblemHistoryWidget({
+    super.key,
+    this.onNavigateToSolveTab,
+  });
+
+  /// Switch parent UI to the Solve tab (this app uses [NavigationBar], not [DefaultTabController]).
+  final VoidCallback? onNavigateToSolveTab;
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +63,7 @@ class ProblemHistoryWidget extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                // Navigate to solve tab
-                DefaultTabController.of(context)?.animateTo(0);
+                onNavigateToSolveTab?.call();
               },
               icon: const Icon(Icons.camera_alt),
               label: const Text('Solve First Problem'),
@@ -141,11 +146,11 @@ class ProblemHistoryWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(context)
                         .colorScheme
-                        .surfaceVariant
-                        .withOpacity(0.3),
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Theme.of(context).dividerColor.withOpacity(0.3),
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -310,8 +315,7 @@ class ProblemHistoryWidget extends StatelessWidget {
       problem.problemDescription ?? 'math_problem.jpg',
     );
 
-    // Navigate to solve tab
-    DefaultTabController.of(context)?.animateTo(0);
+    onNavigateToSolveTab?.call();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -352,7 +356,7 @@ class _ProblemDetailsSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -436,13 +440,13 @@ class _ProblemDetailsSheet extends StatelessWidget {
                         color: Theme.of(context)
                             .colorScheme
                             .primaryContainer
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: Theme.of(context)
                               .colorScheme
                               .primary
-                              .withOpacity(0.3),
+                              .withValues(alpha: 0.3),
                         ),
                       ),
                       child: Column(
@@ -480,7 +484,7 @@ class _ProblemDetailsSheet extends StatelessWidget {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .primary
-                                    .withOpacity(0.3),
+                                    .withValues(alpha: 0.3),
                               ),
                             ),
                             child: _buildAnswerWidget(context, problem.answer),
@@ -503,11 +507,11 @@ class _ProblemDetailsSheet extends StatelessWidget {
                           color: Theme.of(context)
                               .colorScheme
                               .outline
-                              .withOpacity(0.2),
+                              .withValues(alpha: 0.2),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -544,7 +548,7 @@ class _ProblemDetailsSheet extends StatelessWidget {
                             color: Theme.of(context)
                                 .colorScheme
                                 .outline
-                                .withOpacity(0.3),
+                                .withValues(alpha: 0.3),
                           ),
                           const SizedBox(height: 24),
                           ...problem.steps.asMap().entries.map((entry) {
@@ -562,11 +566,11 @@ class _ProblemDetailsSheet extends StatelessWidget {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .outline
-                                        .withOpacity(0.1),
+                                        .withValues(alpha: 0.1),
                                   ),
                               ],
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
                     ),
@@ -682,52 +686,6 @@ class _ProblemDetailsSheet extends StatelessWidget {
       }
     }
     return null;
-  }
-
-  // Helper method to build step widget
-  Widget _buildStepWidget(
-      BuildContext context, int stepNumber, String stepContent) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Step header with number
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    stepNumber.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  stepContent,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        height: 1.5,
-                      ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   // Enhanced step widget that handles math expressions
@@ -935,10 +893,10 @@ class _ProblemDetailsSheet extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
+        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -965,7 +923,7 @@ class _ProblemDetailsSheet extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withValues(alpha: 0.1),
           border: Border.all(color: Colors.red, width: 1),
           borderRadius: BorderRadius.circular(4),
         ),

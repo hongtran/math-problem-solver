@@ -42,7 +42,9 @@ class _EmailInputDialogState extends State<EmailInputDialog> {
 
     try {
       await Future.delayed(const Duration(milliseconds: 500)); // Simulate processing
+      if (!mounted) return;
       widget.onEmailSubmitted(_emailController.text.trim());
+      if (!mounted) return;
       Navigator.of(context).pop();
     } finally {
       setState(() {

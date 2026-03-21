@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -64,7 +63,7 @@ class ImageCaptureWidget extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Take a photo or select an image of your math problem',
+              'Take a photo or select an image (or type your problem below)',
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),

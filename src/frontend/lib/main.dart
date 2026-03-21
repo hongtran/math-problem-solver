@@ -27,4 +27,5 @@ class MathProblemSolverApp extends StatelessWidget {
       ),
     );
   }
-} 
+}
+

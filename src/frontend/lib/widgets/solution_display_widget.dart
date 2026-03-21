@@ -13,16 +13,16 @@ class SolutionDisplayWidget extends StatelessWidget {
   // Static method to create sample solutions for testing
   static MathSolution createSampleSolution1() {
     return MathSolution(
-      solution: "To find the angle \\( \\angle BAC \\) in the given triangle, we can use the properties of angles in triangles and straight lines.\n\n1. **Identify the angles**:\n   - \\( \\angle ABC = 42^\\circ \\)\n   - \\( \\angle ADC = 70^\\circ \\)\n   - Since \\( BCD \\) is a straight line, we have:\n     \\[\n     \\angle BCD + \\angle ADC = 180^\\circ\n     \\]\n   - Therefore, \\( \\angle BCD = 180^\\circ - 70^\\circ = 110^\\circ \\).\n\n2. **In triangle \\( ACD \\)**:\n   - Since \\( ACD \\) is an isosceles triangle, we have \\( \\angle ACD = \\angle ADC = 70^\\circ \\).\n   - The sum of angles in triangle \\( ACD \\) is:\n     \\[\n     \\angle ACD + \\angle CAD + \\angle ADC = 180^\\circ\n     \\]\n   - Substituting the known angles:\n     \\[\n     70^\\circ + \\angle CAD + 70^\\circ = 180^\\circ\n     \\]\n   - Simplifying:\n     \\[\n     140^\\circ + \\angle CAD = 180^\\circ\n     \\]\n   - Thus:\n     \\[\n     \\angle CAD = 180^\\circ - 140^\\circ = 40^\\circ\n     \\]\n\n3. **Finding \\( \\angle BAC \\)**:\n   - Since \\( \\angle BAC = \\angle CAD \\):\n     \\[\n     \\angle BAC = 40^\\circ\n     \\]\n\nTherefore, the answer is:\n\n**Answer: 40°**",
+      solution: 'To find the angle \\( \\angle BAC \\) in the given triangle, we can use the properties of angles in triangles and straight lines.\n\n1. **Identify the angles**:\n   - \\( \\angle ABC = 42^\\circ \\)\n   - \\( \\angle ADC = 70^\\circ \\)\n   - Since \\( BCD \\) is a straight line, we have:\n     \\[\n     \\angle BCD + \\angle ADC = 180^\\circ\n     \\]\n   - Therefore, \\( \\angle BCD = 180^\\circ - 70^\\circ = 110^\\circ \\).\n\n2. **In triangle \\( ACD \\)**:\n   - Since \\( ACD \\) is an isosceles triangle, we have \\( \\angle ACD = \\angle ADC = 70^\\circ \\).\n   - The sum of angles in triangle \\( ACD \\) is:\n     \\[\n     \\angle ACD + \\angle CAD + \\angle ADC = 180^\\circ\n     \\]\n   - Substituting the known angles:\n     \\[\n     70^\\circ + \\angle CAD + 70^\\circ = 180^\\circ\n     \\]\n   - Simplifying:\n     \\[\n     140^\\circ + \\angle CAD = 180^\\circ\n     \\]\n   - Thus:\n     \\[\n     \\angle CAD = 180^\\circ - 140^\\circ = 40^\\circ\n     \\]\n\n3. **Finding \\( \\angle BAC \\)**:\n   - Since \\( \\angle BAC = \\angle CAD \\):\n     \\[\n     \\angle BAC = 40^\\circ\n     \\]\n\nTherefore, the answer is:\n\n**Answer: 40°**',
       steps: [
-        "To find the angle \\( \\angle BAC \\) in the given triangle, we can use the properties of angles in triangles and straight lines.",
-        "1. **Identify the angles**:\n   - \\( \\angle ABC = 42^\\circ \\)\n   - \\( \\angle ADC = 70^\\circ \\)\n   - Since \\( BCD \\) is a straight line, we have:\n     \\[\n     \\angle BCD + \\angle ADC = 180^\\circ\n     \\]\n   - Therefore, \\( \\angle BCD = 180^\\circ - 70^\\circ = 110^\\circ \\).",
-        "2. **In triangle \\( ACD \\)**:\n   - Since \\( ACD \\) is an isosceles triangle, we have \\( \\angle ACD = \\angle ADC = 70^\\circ \\).\n   - The sum of angles in triangle \\( ACD \\) is:\n     \\[\n     \\angle ACD + \\angle CAD + \\angle ADC = 180^\\circ\n     \\]\n   - Substituting the known angles:\n     \\[\n     70^\\circ + \\angle CAD + 70^\\circ = 180^\\circ\n     \\]\n   - Simplifying:\n     \\[\n     140^\\circ + \\angle CAD = 180^\\circ\n     \\]\n   - Thus:\n     \\[\n     \\angle CAD = 180^\\circ - 140^\\circ = 40^\\circ\n     \\]",
-        "3. **Finding \\( \\angle BAC \\)**:\n   - Since \\( \\angle BAC = \\angle CAD \\):\n     \\[\n     \\angle BAC = 40^\\circ\n     \\]",
-        "Therefore, the answer is:",
-        "**Answer: 40°**"
+        'To find the angle \\( \\angle BAC \\) in the given triangle, we can use the properties of angles in triangles and straight lines.',
+        '1. **Identify the angles**:\n   - \\( \\angle ABC = 42^\\circ \\)\n   - \\( \\angle ADC = 70^\\circ \\)\n   - Since \\( BCD \\) is a straight line, we have:\n     \\[\n     \\angle BCD + \\angle ADC = 180^\\circ\n     \\]\n   - Therefore, \\( \\angle BCD = 180^\\circ - 70^\\circ = 110^\\circ \\).',
+        '2. **In triangle \\( ACD \\)**:\n   - Since \\( ACD \\) is an isosceles triangle, we have \\( \\angle ACD = \\angle ADC = 70^\\circ \\).\n   - The sum of angles in triangle \\( ACD \\) is:\n     \\[\n     \\angle ACD + \\angle CAD + \\angle ADC = 180^\\circ\n     \\]\n   - Substituting the known angles:\n     \\[\n     70^\\circ + \\angle CAD + 70^\\circ = 180^\\circ\n     \\]\n   - Simplifying:\n     \\[\n     140^\\circ + \\angle CAD = 180^\\circ\n     \\]\n   - Thus:\n     \\[\n     \\angle CAD = 180^\\circ - 140^\\circ = 40^\\circ\n     \\]',
+        '3. **Finding \\( \\angle BAC \\)**:\n   - Since \\( \\angle BAC = \\angle CAD \\):\n     \\[\n     \\angle BAC = 40^\\circ\n     \\]',
+        'Therefore, the answer is:',
+        '**Answer: 40°**'
       ],
-      answer: "**Answer: 40°**",
+      answer: '**Answer: 40°**',
       confidence: 0.95,
       processingTime: 2.3,
     );
@@ -30,16 +30,16 @@ class SolutionDisplayWidget extends StatelessWidget {
 
   static MathSolution createSampleSolution2() {
     return MathSolution(
-      solution: "Complete solution for the expression problem",
+      solution: 'Complete solution for the expression problem',
       steps: [
-        "To solve the expression \\(20 + (24 - 6) + 6 \\times 3\\), we will follow the order of operations (PEMDAS/BODMAS):",
-        "1. **Parentheses/Brackets**: Calculate \\(24 - 6\\):\n   \\[\n   24 - 6 = 18\n   \\]",
-        "2. **Multiplication**: Calculate \\(6 \\times 3\\):\n   \\[\n   6 \\times 3 = 18\n   \\]",
-        "3. **Addition**: Now substitute back into the expression:\n   \\[\n   20 + 18 + 18\n   \\]",
-        "4. **Final Calculation**:\n   \\[\n   20 + 18 = 38\n   \\]\n   \\[\n   38 + 18 = 56\n   \\]",
-        "Thus, the value of the expression is \\(\\boxed{56}\\)."
+        'To solve the expression \\(20 + (24 - 6) + 6 \\times 3\\), we will follow the order of operations (PEMDAS/BODMAS):',
+        '1. **Parentheses/Brackets**: Calculate \\(24 - 6\\):\n   \\[\n   24 - 6 = 18\n   \\]',
+        '2. **Multiplication**: Calculate \\(6 \\times 3\\):\n   \\[\n   6 \\times 3 = 18\n   \\]',
+        '3. **Addition**: Now substitute back into the expression:\n   \\[\n   20 + 18 + 18\n   \\]',
+        '4. **Final Calculation**:\n   \\[\n   20 + 18 = 38\n   \\]\n   \\[\n   38 + 18 = 56\n   \\]',
+        'Thus, the value of the expression is \\(\\boxed{56}\\).'
       ],
-      answer: "56",
+      answer: '56',
       confidence: 0.98,
       processingTime: 1.8,
     );
@@ -65,7 +65,7 @@ class SolutionDisplayWidget extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: [
                     Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -77,7 +77,7 @@ class SolutionDisplayWidget extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -104,14 +104,14 @@ class SolutionDisplayWidget extends StatelessWidget {
                             Icon(
                               Icons.timer,
                               size: 16,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
                                 'Solved in ${solution.processingTime.toStringAsFixed(2)}s',
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -135,9 +135,69 @@ class SolutionDisplayWidget extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (solution.verified == true) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.verified,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Verified',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
+            if (solution.correctionNote != null && solution.correctionNote!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        solution.correctionNote!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
 
             // Final answer
@@ -148,7 +208,7 @@ class SolutionDisplayWidget extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: [
                     Theme.of(context).colorScheme.primaryContainer,
-                    Theme.of(context).colorScheme.primaryContainer.withOpacity(0.7),
+                    Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.7),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -160,7 +220,7 @@ class SolutionDisplayWidget extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -194,7 +254,7 @@ class SolutionDisplayWidget extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                       ),
                     ),
                     child: _buildAnswerMathWidget(context, solution.answer),
@@ -212,11 +272,11 @@ class SolutionDisplayWidget extends StatelessWidget {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -245,7 +305,7 @@ class SolutionDisplayWidget extends StatelessWidget {
                   const SizedBox(height: 8),
                   Container(
                     height: 1,
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                   ),
                   const SizedBox(height: 24),
 
@@ -261,11 +321,11 @@ class SolutionDisplayWidget extends StatelessWidget {
                             Container(
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               height: 1,
-                              color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                             ),
                         ],
                       );
-                    }).toList(),
+                    }),
                   ] else ...[
                     // Fallback to full solution if no steps
                     _buildStepInline(context, 1, solution.solution),
@@ -572,10 +632,10 @@ class SolutionDisplayWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
+        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -587,7 +647,7 @@ class SolutionDisplayWidget extends StatelessWidget {
 
   Widget _buildMathWidget(BuildContext context, String mathContent) {
     // Debug: print the math content to see what we're trying to render
-    print('Rendering math: "$mathContent"');
+    debugPrint('Rendering math: "$mathContent"');
     
     try {
       // Try to render with Math.tex
@@ -602,13 +662,13 @@ class SolutionDisplayWidget extends StatelessWidget {
       );
     } catch (e) {
       // Debug: print the error
-      print('Math rendering error: $e');
+      debugPrint('Math rendering error: $e');
       
       // Fallback to plain text with highlighting to show where math should be
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withValues(alpha: 0.1),
           border: Border.all(color: Colors.red, width: 1),
           borderRadius: BorderRadius.circular(4),
         ),

@@ -1,0 +1,2 @@
+# Dev-only: lint + format (run from repo root: ruff check src/backend && ruff format src/backend)
+ruff>=0.9.0

@@ -124,9 +124,62 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Optional: Ruff (lint + format)
+pip install -r requirements-dev.txt
+
 # Run the server
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+From the **repository root**, lint and format the backend (config lives in `pyproject.toml`):
+
+```bash
+ruff check src/backend --exclude src/backend/venv --fix
+ruff format src/backend --exclude src/backend/venv
+```
+
+#### LangGraph dev (optional — inspect agent flow)
+
+Use [LangGraph CLI](https://docs.langchain.com/langgraph-platform/cli) to run a local dev server and open **LangGraph Studio** (thread view, step-by-step execution, state inspection).
+
+1. Install backend deps and set `OPENAI_API_KEY` in the project **root** `.env` (same file `langgraph.json` references).
+
+```bash
+pip install -r src/backend/requirements.txt
+# If you see "Required package 'langgraph-api' is not installed":
+pip install -U "langgraph-cli[inmem]" "langgraph-api"
+```
+
+2. From the **repository root** (`math-problem-solver/`, not `src/backend/`):
+
+```bash
+langgraph dev
+```
+
+3. Open the URL printed in the terminal (e.g. LangGraph Studio).
+4. **Graph id:** `math_agent` (see `langgraph.json`).
+5. **Input state** must match `AgentState`: include `messages`, `verified`, and `correction_note`. Example for a **text-only** run (paste into the thread input / state as JSON, depending on Studio version):
+
+```json
+{
+  "messages": [
+    {
+      "type": "system",
+      "content": "You are an expert mathematics tutor. Use verify_solution when needed."
+    },
+    {
+      "type": "human",
+      "content": "Solve: x^2 - 25 = 0 for x. Use the verify_solution tool to check your answer."
+    }
+  ],
+  "verified": false,
+  "correction_note": null
+}
+```
+
+For **vision**, add a `human` message with multimodal `content` (list with `text` + `image_url`) per LangChain message format.
+
+See [docs/LANGGRAPH_DEV.md](docs/LANGGRAPH_DEV.md) for more detail.
 
 #### Frontend Setup
 

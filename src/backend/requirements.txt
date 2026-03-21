@@ -1,12 +1,20 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
+# FastAPI 0.104.x requires starlette<0.28; newer Starlette (from LangGraph stack) uses
+# Middleware(cls, args, kwargs) iteration — use FastAPI >=0.115 so build_middleware_stack matches.
+fastapi>=0.115.6
+uvicorn[standard]>=0.27.0
 python-multipart==0.0.6
 pillow>=10.4.0
-openai==1.3.7
+openai==2.26.0
 firebase-admin==6.2.0
 python-dotenv==1.0.0
 pydantic>=2.9.0,<3
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 aiofiles==23.2.1
-httpx==0.25.2 
+httpx==0.25.2
+langchain-openai>=0.2.0
+langchain-core>=0.3.0
+langgraph>=0.2.0
+# langgraph dev: CLI + in-memory API server (langgraph-api is required by `langgraph dev`)
+langgraph-cli[inmem]>=0.1.55
+langgraph-api>=0.1.0

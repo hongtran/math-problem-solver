@@ -239,3 +239,5 @@ Desktop.ini
 *~
 # credentials
 src/backend/serviceAccountKey.json
+
+.langgraph_api/
