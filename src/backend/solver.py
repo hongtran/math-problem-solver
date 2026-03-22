@@ -12,6 +12,7 @@ from math_response_format import (
     SYSTEM_JSON_SOLVER_PROMPT,
     parse_solution_with_text_fallback,
 )
+from math_verification_critique import run_verification_critique
 from openai import OpenAI
 from schemas import MathProblemRequest, MathProblemResponse
 
@@ -25,6 +26,7 @@ def _persist_problem(
     steps: list[str],
     processing_time: float,
     verified: bool | None,
+    verification_status: str | None = None,
 ) -> None:
     if not request.user_email or db is None:
         return
@@ -40,6 +42,8 @@ def _persist_problem(
             problem_data["image_base64"] = request.image_base64
         if request.use_verification:
             problem_data["verified"] = verified
+            if verification_status is not None:
+                problem_data["verification_status"] = verification_status
         db.collection("math_problems").add(problem_data)
     except Exception:
         logger.exception("Firebase save failed")
@@ -55,13 +59,45 @@ def solve_math_problem_sync(
     img_base64 = normalize_base64_image_to_png_base64(request.image_base64)
     problem_text = (request.problem_text or request.problem_description or "").strip()
 
+    verification_status: str | None = None
+    verification_method: str | None = None
+    verification_message: str | None = None
+    verification_critique: str | None = None
+
     if request.use_verification:
         image_url = f"data:image/png;base64,{img_base64}" if img_base64 else None
-        solution_text, steps, answer, verified, correction_note = run_math_agent_langgraph(
+        (
+            solution_text,
+            steps,
+            answer,
+            verified,
+            correction_note,
+            verification_status,
+            verification_method,
+            verification_message,
+        ) = run_math_agent_langgraph(
             image_url=image_url,
             problem_text=problem_text if problem_text else None,
         )
-        confidence = 0.98 if verified else 0.85
+
+        if verification_status == "unverified":
+            verification_critique = run_verification_critique(
+                client,
+                problem_text,
+                answer,
+                solution_text,
+            )
+        if verified is True:
+            if verification_method and verification_method.startswith("sympy"):
+                confidence = 0.97
+            elif verification_method == "numeric_plugin":
+                confidence = 0.91
+            else:
+                confidence = 0.95
+        elif verified is False:
+            confidence = 0.78
+        else:
+            confidence = 0.82
     else:
         user_json_instruction = (
             problem_text or "Please solve this math problem."
@@ -90,7 +126,15 @@ def solve_math_problem_sync(
         confidence = 0.85
 
     processing_time = (datetime.now() - start_time).total_seconds()
-    _persist_problem(db, request, problem_text, steps, processing_time, verified)
+    _persist_problem(
+        db,
+        request,
+        problem_text,
+        steps,
+        processing_time,
+        verified,
+        verification_status=verification_status if request.use_verification else None,
+    )
 
     return MathProblemResponse(
         solution=solution_text,
@@ -99,6 +143,10 @@ def solve_math_problem_sync(
         confidence=confidence,
         processing_time=processing_time,
         verified=verified if request.use_verification else None,
+        verification_status=verification_status if request.use_verification else None,
+        verification_method=verification_method if request.use_verification else None,
+        verification_message=verification_message if request.use_verification else None,
+        verification_critique=verification_critique if request.use_verification else None,
         correction_note=correction_note if request.use_verification else None,
     )
 

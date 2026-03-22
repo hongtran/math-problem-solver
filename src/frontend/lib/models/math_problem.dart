@@ -42,6 +42,9 @@ class MathSolution {
   final double processingTime;
   final bool? verified;
   final String? correctionNote;
+  final String? verificationMethod;
+  final String? verificationMessage;
+  final String? verificationCritique;
 
   MathSolution({
     required this.solution,
@@ -51,6 +54,9 @@ class MathSolution {
     required this.processingTime,
     this.verified,
     this.correctionNote,
+    this.verificationMethod,
+    this.verificationMessage,
+    this.verificationCritique,
   });
 
   factory MathSolution.fromJson(Map<String, dynamic> json) {
@@ -62,6 +68,9 @@ class MathSolution {
       processingTime: (json['processing_time'] ?? 0.0).toDouble(),
       verified: json['verified'] as bool?,
       correctionNote: json['correction_note'] as String?,
+      verificationMethod: json['verification_method'] as String?,
+      verificationMessage: json['verification_message'] as String?,
+      verificationCritique: json['verification_critique'] as String?,
     );
   }
 
@@ -74,6 +83,9 @@ class MathSolution {
       'processing_time': processingTime,
       if (verified != null) 'verified': verified,
       if (correctionNote != null) 'correction_note': correctionNote,
+      if (verificationMethod != null) 'verification_method': verificationMethod,
+      if (verificationMessage != null) 'verification_message': verificationMessage,
+      if (verificationCritique != null) 'verification_critique': verificationCritique,
     };
   }
 }

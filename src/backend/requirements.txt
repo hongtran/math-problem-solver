@@ -18,3 +18,4 @@ langgraph>=0.2.0
 # langgraph dev: CLI + in-memory API server (langgraph-api is required by `langgraph dev`)
 langgraph-cli[inmem]>=0.1.55
 langgraph-api>=0.1.0
+sympy>=1.12,<2

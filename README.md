@@ -5,7 +5,7 @@ An AI-powered application that helps students solve mathematics homework problem
 ## 🚀 Features
 
 - **Image Capture**: Take photos or upload images of math problems
-- **AI-Powered Solutions**: Get step-by-step solutions using OpenAI's GPT-4 Vision
+- **AI-Powered Solutions**: Step-by-step solutions via OpenAI (vision + text); optional **symbolic verification** (SymPy in a subprocess) with honest **unverified** outcomes when a plug-in check does not apply
 - **Problem History**: Track all solved problems with timestamps
 - **Modern UI**: Beautiful Flutter interface with Material Design 3
 - **Cross-Platform**: Works on web, mobile, and desktop
@@ -13,26 +13,73 @@ An AI-powered application that helps students solve mathematics homework problem
 
 ## 🏗️ Architecture
 
+High-level data flow:
+
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Flutter      │    │   FastAPI       │    │   OpenAI        │
-│   Frontend     │◄──►│   Backend       │◄──►│   GPT-4 Vision  │
-│                │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │
-         │                       │
-         ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐
-│   Firebase      │    │   Image Storage │
-│   (Optional)    │    │   & Processing  │
-└─────────────────┘    └─────────────────┘
+┌──────────────────────┐         POST /solve-math-problem          ┌─────────────────────────────────────────────┐
+│  Flutter Frontend    │ ───────────────────────────────────────► │  FastAPI (main.py → solver.py)             │
+│  (image / text)      │ ◄─────────────────────────────────────── │  • Normalize image → PNG base64             │
+└──────────────────────┘         MathProblemResponse JSON         │  • use_verification True/False               │
+         │                                                          └─────────────────────────────────────────────┘
+         │                                                                            │
+         │                                                                            ▼
+         │                                                          ┌──────────────────┴──────────────────┐
+         │                                                          │                                     │
+         │                                               use_verification=True              use_verification=False
+         │                                                          │                                     │
+         │                                                          ▼                                     ▼
+         │                                               ┌─────────────────────┐           ┌─────────────────────┐
+         │                                               │ LangGraph agent     │           │ One-shot OpenAI     │
+         │                                               │ (math_agent.py)     │           │ JSON completion     │
+         │                                               │ ChatOpenAI + tools  │           │ (no tools)          │
+         │                                               └──────────┬──────────┘           └─────────────────────┘
+         │                                                          │
+         │                                                          │  verify_solution tool
+         │                                                          ▼
+         │                                               ┌─────────────────────┐
+         │                                               │ math_tools.py       │
+         │                                               │ subprocess + JSON   │
+         │                                               └──────────┬──────────┘
+         │                                                          │
+         │                                                          ▼
+         │                                               ┌─────────────────────┐
+         │                                               │ _verify_worker.py   │
+         │                                               │ SymPy → substitute  │
+         │                                               │ / simplify; else    │
+         │                                               │ safe numeric eval   │
+         │                                               └──────────┬──────────┘
+         │                                                          │
+         │               ┌────────────────────────────────────────────┘
+         │               │
+         │               ▼
+         │    Optional: if verification_status == unverified
+         │    and MATH_VERIFICATION_CRITIQUE → second LLM JSON critique
+         │               │
+         └───────────────┴──► verification fields in response (verified, verification_status,
+                            verification_method, verification_message, verification_critique)
+```
+
+**Verification path (summary):** The tutor model proposes an equation and answer(s); **`verify_solution`** checks them in an **isolated subprocess** (`_verify_worker.py`) so parsing and checks are **timeout-bounded**. **SymPy** is used when the expression parses; otherwise a **restricted numeric plug-in** runs. Non-algebraic problems use **`problem_kind`** so the API can return **`unverified`** instead of a false “verified”. See **[docs/SEQUENCE_FLOW.md](docs/SEQUENCE_FLOW.md)** for sequence diagrams and field semantics.
+
+```
+         ┌─────────────┐
+         │  OpenAI     │ ◄──► LangGraph agent (vision + text) and optional critique call
+         │  API        │
+         └─────────────┘
+
+         ┌─────────────┐
+         │  Firebase   │ ◄── optional persist (user_email): steps, verified, verification_status, …
+         │  Firestore  │
+         └─────────────┘
 ```
 
 ## 🛠️ Tech Stack
 
 ### Backend
 - **FastAPI**: Modern Python web framework
-- **OpenAI API**: GPT-4 Vision for math problem solving
+- **OpenAI API**: GPT-4o-mini for solving (vision + text when an image is provided)
+- **LangGraph / LangChain**: Agent loop with **`verify_solution`** tool
+- **SymPy**: Symbolic verification in subprocess (`_verify_worker.py`)
 - **Pillow**: Image processing and manipulation
 - **Firebase Admin**: User management and data storage (optional)
 
@@ -158,7 +205,7 @@ langgraph dev
 
 3. Open the URL printed in the terminal (e.g. LangGraph Studio).
 4. **Graph id:** `math_agent` (see `langgraph.json`).
-5. **Input state** must match `AgentState`: include `messages`, `verified`, and `correction_note`. Example for a **text-only** run (paste into the thread input / state as JSON, depending on Studio version):
+5. **Input state** must match `AgentState`: include `messages`, `verified`, `correction_note`, `verification_status`, `verification_method`, and `verification_message`. Example for a **text-only** run (paste into the thread input / state as JSON, depending on Studio version):
 
 ```json
 {
@@ -173,7 +220,10 @@ langgraph dev
     }
   ],
   "verified": false,
-  "correction_note": null
+  "correction_note": null,
+  "verification_status": null,
+  "verification_method": null,
+  "verification_message": null
 }
 ```
 
@@ -217,7 +267,7 @@ flutter run             # For connected device
 
 - `GET /`: API information
 - `GET /health`: Health check
-- `POST /solve-math-problem`: Solve math problem from image
+- `POST /solve-math-problem`: Solve from image and/or text; optional LangGraph verification (`use_verification`); returns `verification_*` fields when verification is on
 - `POST /upload-image`: Upload and process image
 - `GET /user-problems/{user_id}`: Get user's problem history
 
@@ -225,7 +275,8 @@ flutter run             # For connected device
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OPENAI_API_KEY` | OpenAI API key for GPT-4 Vision | Required |
+| `OPENAI_API_KEY` | OpenAI API key (solver + agent + optional critique) | Required |
+| `MATH_VERIFICATION_CRITIQUE` | If `1`/`true`/`yes`/`on`, run optional LLM critique when verification is **unverified** | Off |
 | `HOST` | Backend server host | `0.0.0.0` |
 | `PORT` | Backend server port | `8000` |
 | `DEBUG` | Enable debug mode | `True` |
@@ -296,7 +347,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- OpenAI for providing the GPT-4 Vision API
+- OpenAI for the Chat Completions / vision API used by the solver and agent
 - Flutter team for the amazing cross-platform framework
 - FastAPI for the modern Python web framework
 - The open-source community for various dependencies

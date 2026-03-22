@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, model_validator
+from typing import Literal
+
+from pydantic import BaseModel, Field, model_validator
+
+VerificationStatus = Literal["verified", "failed", "unverified"]
 
 
 class MathProblemRequest(BaseModel):
@@ -28,5 +32,27 @@ class MathProblemResponse(BaseModel):
     answer: str
     confidence: float
     processing_time: float
-    verified: bool | None = None
+    verified: bool | None = Field(
+        default=None,
+        description=(
+            "True only if an automated mathematical check passed. False if a check ran and failed. "
+            "None if verification was disabled, or no reliable automated check ran (see verification_status)."
+        ),
+    )
+    verification_status: VerificationStatus | None = Field(
+        default=None,
+        description='Outcome of verification: "verified", "failed", or "unverified". None when use_verification is false.',
+    )
+    verification_method: str | None = Field(
+        default=None,
+        description="How verification was done, e.g. sympy_substitute, numeric_plugin, skipped_non_algebraic.",
+    )
+    verification_message: str | None = Field(
+        default=None,
+        description="Detail from the verification layer (SymPy, numeric fallback, or skip reason).",
+    )
+    verification_critique: str | None = Field(
+        default=None,
+        description="Optional second-pass LLM consistency note when verification was unverified (if enabled via env).",
+    )
     correction_note: str | None = None

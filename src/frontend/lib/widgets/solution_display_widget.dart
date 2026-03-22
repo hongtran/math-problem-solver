@@ -198,6 +198,14 @@ class SolutionDisplayWidget extends StatelessWidget {
                 ),
               ),
             ],
+            if (_hasMechanicalVerificationDetails(solution)) ...[
+              const SizedBox(height: 12),
+              _buildMechanicalVerificationCard(context, solution),
+            ],
+            if (_shouldShowVerificationCritique(solution)) ...[
+              const SizedBox(height: 12),
+              _buildVerificationCritiqueCard(context, solution),
+            ],
             const SizedBox(height: 24),
 
             // Final answer
@@ -391,6 +399,109 @@ class SolutionDisplayWidget extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  bool _hasMechanicalVerificationDetails(MathSolution s) {
+    if (s.verified != true) return false;
+    final m = s.verificationMethod?.trim();
+    final msg = s.verificationMessage?.trim();
+    return (m != null && m.isNotEmpty) || (msg != null && msg.isNotEmpty);
+  }
+
+  bool _shouldShowVerificationCritique(MathSolution s) {
+    if (s.verified == true) return false;
+    final c = s.verificationCritique?.trim();
+    return c != null && c.isNotEmpty;
+  }
+
+  Widget _buildMechanicalVerificationCard(BuildContext context, MathSolution s) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.tertiary.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.fact_check_outlined, size: 20, color: scheme.tertiary),
+              const SizedBox(width: 8),
+              Text(
+                'Verification',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: scheme.onTertiaryContainer,
+                    ),
+              ),
+            ],
+          ),
+          if (s.verificationMethod != null && s.verificationMethod!.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Method: ${s.verificationMethod!.trim()}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurface,
+                  ),
+            ),
+          ],
+          if (s.verificationMessage != null && s.verificationMessage!.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              s.verificationMessage!.trim(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.9),
+                    height: 1.35,
+                  ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerificationCritiqueCard(BuildContext context, MathSolution s) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = s.verificationCritique!.trim();
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.secondary.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.rate_review_outlined, size: 20, color: scheme.secondary),
+              const SizedBox(width: 8),
+              Text(
+                'Review note',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: scheme.onSecondaryContainer,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurface,
+                  height: 1.35,
+                ),
+          ),
+        ],
       ),
     );
   }
