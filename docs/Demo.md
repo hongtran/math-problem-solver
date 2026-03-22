@@ -38,9 +38,11 @@ Parents and Teachers seeking "safe" AI that follows pedagogical standards.
 
 ---
 
-##  3: System Architecture (The "Senior SWE" Signal)
+##  3: System Architecture
 
 **Title:** Modular Architecture for Reliability
+
+![System architecture: Flutter client → FastAPI → LangGraph agent → OpenAI vision/text and verify_solution_tool → subprocess SymPy; optional Firebase history.](assets/system-architecture.png)
 
 ### Separation of Concerns
 
