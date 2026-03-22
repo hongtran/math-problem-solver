@@ -20,39 +20,39 @@ sequenceDiagram
 
   User->>Frontend: Upload image and/or enter problem text
   Frontend->>Frontend: Encode image to base64 (if any)
-  Frontend->>API: POST /solve-math-problem (image_base64, problem_text, use_verification, …)
-  API->>API: Normalize image to PNG base64; build data URL if image present
+  Frontend->>API: POST /solve-math-problem (image_base64, problem_text, use_verification)
+  API->>API: Normalize image to PNG base64, build data URL if image present
 
   alt use_verification is True
     API->>LangGraph: run_math_agent_langgraph(image_url, problem_text)
     loop Agent loop until last AIMessage has no tool_calls
       LangGraph->>OpenAI: Chat with vision + tools (optional image + text)
       OpenAI-->>LangGraph: AIMessage (content and/or tool_calls)
-      alt AIMessage has tool_calls (verify_solution)
+      alt AIMessage has verify_solution tool_calls
         LangGraph->>VerifyTool: verify_solution(equation, variable, value, additional_answers, problem_kind)
-        VerifyTool->>Worker: run_verify_solution → subprocess _verify_worker.py (JSON stdin)
+        VerifyTool->>Worker: run_verify_solution, subprocess _verify_worker.py JSON stdin
         Worker-->>VerifyTool: status, method, message, verified
         VerifyTool-->>LangGraph: ToolMessage JSON
-        LangGraph->>LangGraph: Update verification_status, method, message; correction_note if failed
+        LangGraph->>LangGraph: Update verification fields, correction_note if failed
       end
     end
-    LangGraph-->>API: solution, steps, answer, verified, correction_note, verification_*
-    opt verification_status == unverified and MATH_VERIFICATION_CRITIQUE enabled
-      API->>Critique: run_verification_critique (OpenAI JSON: plausible / notes)
+    LangGraph-->>API: solution, steps, answer, verified, correction_note, verification fields
+    opt verification_status is unverified and critique env enabled
+      API->>Critique: run_verification_critique OpenAI JSON plausible or notes
       Critique-->>API: verification_critique string or None
     end
   else use_verification is False
     API->>OpenAI: One-shot completion (JSON schema response)
     OpenAI-->>API: solution JSON
-    API->>API: Parse steps, answer; verification fields = None
+    API->>API: Parse steps, answer, verification fields null
   end
 
-  API->>API: Build MathProblemResponse (confidence from outcome + verification_method)
+  API->>API: Build MathProblemResponse and confidence from outcome
   opt user_email present and Firebase configured
-    API->>Firebase: Save problem_data (verified, verification_status, …)
+    API->>Firebase: Save problem_data verified verification_status etc
   end
-  API-->>Frontend: MathProblemResponse (solution, steps, answer, confidence, verified, verification_status, verification_method, verification_message, verification_critique, correction_note)
-  Frontend->>User: Solution UI: Verified badge if verified; Verification card (method + message) if verified; Review note if critique present when not verified
+  API-->>Frontend: MathProblemResponse JSON with solution steps answer confidence
+  Frontend->>User: Show solution, verification UI, critique when applicable
 ```
 
 ---
@@ -68,9 +68,9 @@ sequenceDiagram
   participant AgentNode as Agent_Node
   participant LLM as ChatOpenAI
   participant ToolsNode as Tools_Node
-  participant MathTools as math_tools.run_verify_solution
+  participant MathTools as math_tools_verify
 
-  API->>Graph: invoke(initial_state: SystemMessage + HumanMessage with optional image + text)
+  API->>Graph: invoke SystemMessage HumanMessage optional image and text
   Graph->>AgentNode: agent node
 
   loop Until last message has no tool_calls
@@ -80,9 +80,9 @@ sequenceDiagram
 
     alt AIMessage has tool_calls
       Graph->>ToolsNode: tools node (ToolNode)
-      ToolsNode->>MathTools: run_verify_solution(payload)
+      ToolsNode->>MathTools: run_verify_solution payload
       MathTools-->>ToolsNode: verified, status, method, message
-      ToolsNode->>ToolsNode: ToolMessage(json); merge state from last tool result
+      ToolsNode->>ToolsNode: ToolMessage JSON merge state from tool result
       ToolsNode-->>Graph: updated state
       Graph->>AgentNode: agent node again
     else AIMessage has no tool_calls
@@ -90,9 +90,9 @@ sequenceDiagram
     end
   end
 
-  Graph-->>API: final_state (messages, verification_status, verification_method, verification_message, …)
-  API->>API: Map to API semantics: verified True / False / None from verification_status
-  API->>API: Parse final AIMessage JSON → solution, steps, answer
+  Graph-->>API: final_state messages verification fields
+  API->>API: Map verification_status to verified true false or null
+  API->>API: Parse final AIMessage JSON to solution steps answer
 ```
 
 **API mapping of `verified` (honest semantics):**
@@ -113,28 +113,21 @@ The tool runs in an **isolated subprocess** (`_verify_worker.py`) with timeout (
 sequenceDiagram
   participant Agent as LangGraph_Tools_Node
   participant Tool as verify_solution
-  participant math_tools as math_tools.run_verify_solution
-  participant Subprocess as _verify_worker.py
+  participant MathTools as math_tools_run_verify
+  participant Subprocess as verify_worker_py
 
-  Agent->>Tool: verify_solution(equation_expression, variable, proposed_value, additional_answers, problem_kind)
-  Tool->>math_tools: run_verify_solution(...)
-  math_tools->>Subprocess: stdin JSON payload
-  alt problem_kind is non_algebraic / proof / geometry / word_problem / inequality_chain
-    Subprocess-->>math_tools: status=unverified, method=skipped_non_algebraic, …
-  else algebraic path
-    Subprocess->>Subprocess: SymPy parse_expr (optional lhs == rhs → lhs − rhs)
-    Subprocess->>Subprocess: sympify all proposed values (incl. additional_answers list)
-    alt SymPy substitute + simplify succeeds for all values
-      Subprocess-->>math_tools: status=verified, method=sympy_substitute or sympy_multi
-    else SymPy check fails (wrong value)
-      Subprocess-->>math_tools: status=failed, method=sympy_substitute
-    else SymPy parse fails
-      Subprocess->>Subprocess: Fallback: restricted eval + math (single expression, no ==)
-      Subprocess-->>math_tools: status=verified or failed, method=numeric_plugin (+ note)
-    end
+  Agent->>Tool: verify_solution equation variable values problem_kind
+  Tool->>MathTools: run_verify_solution JSON payload
+  MathTools->>Subprocess: stdin JSON payload
+  alt skip kinds non_algebraic proof geometry word etc
+    Subprocess-->>MathTools: unverified skipped_non_algebraic
+  else algebraic
+    Note over Subprocess: SymPy parse substitute simplify, or numeric fallback if parse fails
+    Subprocess->>Subprocess: evaluate all proposed values
+    Subprocess-->>MathTools: verified failed or sympy or numeric_plugin
   end
-  math_tools-->>Tool: dict
-  Tool-->>Agent: JSON string for ToolMessage
+  MathTools-->>Tool: result dict
+  Tool-->>Agent: JSON string ToolMessage
 ```
 
 **Tool parameters (summary):**
