@@ -2,8 +2,6 @@
 
 ##  1: The Hook & The Problem
 
-**Title:** Bridging the Trust Gap in AI Education
-
 ### The Problem
 
 Current GenAI homework helpers suffer from **"Hallucination by Confidence."** Students get answers that look right but are mathematically flawed, leading to a breakdown in learning and trust.
@@ -19,8 +17,6 @@ An intelligent agent that uses symbolic computation to self-correct and provide 
 ---
 
 ##  2: User Value & Market Differentiator
-
-**Title:** Beyond the Chatbot: Engineering for Accuracy
 
 ### Primary User
 
@@ -39,8 +35,6 @@ Parents and Teachers seeking "safe" AI that follows pedagogical standards.
 ---
 
 ##  3: System Architecture
-
-**Title:** Modular Architecture for Reliability
 
 ![System architecture: Flutter client → FastAPI → LangGraph agent → OpenAI vision/text and verify_solution_tool → subprocess SymPy; optional Firebase history.](assets/system-architecture.png)
 
@@ -61,8 +55,6 @@ Focus on **schema-driven JSON** responses and **error-bounded subprocesses** to 
 
 ##  4: Live Demo Guide (The Value Story)
 
-**Title:** Demo Walkthrough: Trust in Action
-
 ### Scenario A: The "Verified" Path
 
 Algebraic problem → LLM solves → SymPy confirms → UI displays a **Green Badge**.
@@ -78,8 +70,6 @@ Transparency is the feature. We teach students to **critique AI**, not just cons
 ---
 
 ##  5: Product Roadmap & Evolution
-
-**Title:** Scaling from Prototype to Classroom
 
 ### Phase 1: Deepening Coverage
 
@@ -97,8 +87,6 @@ Expand verification to **Calculus, Chemistry, and Physics** via specialized solv
 ---
 
 ##  6: Summary & Vision
-
-**Title:** Engineering Trust into Generative AI
 
 ### Core Philosophy
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🔧 Math Problem Solver - Development Setup"
+echo "🔧 Math Problem Solver - Development Setup!"
 echo "=========================================="
 
 # Check if .env file exists

@@ -51,6 +51,7 @@ services:
   #   networks:
   #     - math-solver-network
 
+# Networks
 networks:
   math-solver-network:
     driver: bridge

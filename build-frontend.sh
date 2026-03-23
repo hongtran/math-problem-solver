@@ -29,6 +29,6 @@ if [ $? -eq 0 ]; then
     echo "📁 Build output: src/frontend/build/web"
     echo "🚀 You can now run: docker-compose up --build"
 else
-    echo "❌ Frontend build failed!"
+    echo "❌ Frontend build failed!!!!"
     exit 1
 fi

@@ -63,7 +63,7 @@ if curl -f http://localhost:8000/health > /dev/null 2>&1; then
     echo "✅ Backend API is running at http://localhost:8000"
     echo "📚 API Documentation: http://localhost:8000/docs"
 else
-    echo "❌ Backend API failed to start. Check logs with: docker-compose logs backend"
+    echo "❌ Backend API failed to start. Check logs with: docker-compose logs backend!"
 fi
 
 if curl -f http://localhost:8080 > /dev/null 2>&1; then
